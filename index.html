@@ -704,7 +704,7 @@
     <script>
     // ================= КОНФИГУРАЦИЯ =================
     const CONFIG = {
-        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwZ1t43g0MTUnAZk_UpB4hZTuYaTZeV8r-ReT9u4dTL-6ss2DdM6GbXcbdYldMjj2hMgw/exec',
+        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx9I_tII_hjG9mDQ7Y6bx8p61JdC6vipawRFdSCLSxa5853MDLIzm_liymBYf-KXBPeXw/exec',
         VERSION: '2.0'
     };
 
@@ -838,41 +838,52 @@
     }
 
     // ================= ЗАГРУЗКА ДАННЫХ =================
-    async function loadTeamData() {
-        if (!currentState.team) return;
+async function loadTeamData() {
+    if (!currentState.team) return;
+    
+    try {
+        console.log('Загрузка данных команды...');
         
-        try {
-            console.log('Загрузка данных команды...');
+        // Загружаем рейтинг
+        const ratingResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getRating`);
+        if (!ratingResponse.ok) throw new Error('Ошибка загрузки рейтинга');
+        
+        const ratingResult = await ratingResponse.json();
+        console.log('Рейтинг:', ratingResult);
+        
+        if (ratingResult.success) {
+            currentState.rating = ratingResult.data.rating || [];
             
-            // Загружаем рейтинг
-            const ratingResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getRating`);
-            if (!ratingResponse.ok) throw new Error('Ошибка загрузки рейтинга');
-            
-            const ratingResult = await ratingResponse.json();
-            console.log('Рейтинг:', ratingResult);
-            
-            if (ratingResult.success) {
-                currentState.rating = ratingResult.data.rating || [];
-                updateTeamDashboard();
+            // НАХОДИМ АКТУАЛЬНЫЕ ДАННЫЕ КОМАНДЫ В РЕЙТИНГЕ
+            const updatedTeamData = currentState.rating.find(team => team.id == currentState.team.id);
+            if (updatedTeamData) {
+                // ОБНОВЛЯЕМ ДАННЫЕ ТЕКУЩЕЙ КОМАНДЫ
+                currentState.team.score = updatedTeamData.score;
+                currentState.team.name = updatedTeamData.name;
+                // Сохраняем обновленные данные в localStorage
+                localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
             }
             
-            // Загружаем историю
-            const historyResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`);
-            if (!historyResponse.ok) throw new Error('Ошибка загрузки истории');
-            
-            const historyResult = await historyResponse.json();
-            console.log('История:', historyResult);
-            
-            if (historyResult.success) {
-                currentState.transactions = historyResult.data.transactions || [];
-                updateHistoryTable();
-            }
-            
-        } catch (error) {
-            console.error('Ошибка загрузки данных:', error);
-            showNotification('Ошибка загрузки данных', 'error');
+            updateTeamDashboard();
         }
+        
+        // Загружаем историю
+        const historyResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`);
+        if (!historyResponse.ok) throw new Error('Ошибка загрузки истории');
+        
+        const historyResult = await historyResponse.json();
+        console.log('История:', historyResult);
+        
+        if (historyResult.success) {
+            currentState.transactions = historyResult.data.transactions || [];
+            updateHistoryTable();
+        }
+        
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        showNotification('Ошибка загрузки данных', 'error');
     }
+}
 
     async function loadAdminData() {
         try {
@@ -907,23 +918,28 @@
 
     // ================= ОБНОВЛЕНИЕ ИНТЕРФЕЙСА =================
     function updateTeamDashboard() {
-        if (!currentState.team) return;
-        
-        document.getElementById('teamNameDisplay').textContent = currentState.team.name;
-        document.getElementById('teamScoreDisplay').textContent = `${currentState.team.score || 0} баллов`;
-        document.getElementById('myScore').textContent = currentState.team.score || 0;
-        
-        let position = 0;
-        if (currentState.rating && currentState.rating.length > 0) {
-            position = currentState.rating.findIndex(team => team.id == currentState.team.id) + 1;
-            if (position === 0) position = currentState.rating.length + 1;
-        }
-        
-        document.getElementById('myPosition').textContent = position > 0 ? position : '-';
-        document.getElementById('totalTeams').textContent = currentState.rating ? currentState.rating.length : 0;
-        
-        updateRatingTable();
+    if (!currentState.team) return;
+    
+    // Обновляем заголовок
+    document.getElementById('teamNameDisplay').textContent = currentState.team.name;
+    document.getElementById('teamScoreDisplay').textContent = `${currentState.team.score || 0} баллов`;
+    
+    // Обновляем статистику
+    document.getElementById('myScore').textContent = currentState.team.score || 0;
+    
+    // Находим позицию в рейтинге
+    let position = 0;
+    if (currentState.rating && currentState.rating.length > 0) {
+        position = currentState.rating.findIndex(team => team.id == currentState.team.id) + 1;
+        if (position === 0) position = currentState.rating.length + 1;
     }
+    
+    document.getElementById('myPosition').textContent = position > 0 ? position : '-';
+    document.getElementById('totalTeams').textContent = currentState.rating ? currentState.rating.length : 0;
+    
+    // Обновляем таблицу рейтинга
+    updateRatingTable();
+}
 
     function updateHistoryTable() {
         const container = document.getElementById('historyTable');
