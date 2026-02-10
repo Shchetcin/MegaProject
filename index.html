@@ -705,6 +705,7 @@
     // ================= КОНФИГУРАЦИЯ =================
     const CONFIG = {
         SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx546l7ZQshJfCwWSKBh-dK-wi1a8ZOS4cWFYV3_fEvvdZD--F5679Ijb0t5jU60BdPQg/exec',
+        REFRESH_INTERVAL: 30000, // 30 секунд для автообновления
         VERSION: '2.0'
     };
 
@@ -730,11 +731,13 @@
             currentState.team = JSON.parse(savedTeam);
             showScreen('teamScreen');
             loadTeamData();
+            startAutoRefresh();
         } else if (savedAdmin === 'true' && savedPassword) {
             currentState.isAdmin = true;
             currentState.adminPassword = savedPassword;
             showScreen('adminScreen');
             loadAdminData();
+            startAutoRefresh();
         }
     });
 
@@ -763,6 +766,7 @@
                 localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
                 showScreen('teamScreen');
                 loadTeamData();
+                startAutoRefresh();
                 showNotification(`Добро пожаловать, ${currentState.team.name}!`, 'success');
             } else {
                 showNotification(result.data?.error || 'Команда не найдена', 'error');
@@ -808,6 +812,7 @@
                 
                 showScreen('adminScreen');
                 loadAdminData();
+                startAutoRefresh();
                 
                 showNotification('Панель организатора активна', 'success');
                 document.getElementById('adminPassword').value = '';
@@ -830,6 +835,7 @@
         localStorage.removeItem('isAdmin');
         localStorage.removeItem('adminPassword');
         
+        stopAutoRefresh();
         showScreen('loginScreen');
         document.getElementById('teamCode').value = '';
         document.getElementById('adminPassword').value = '';
@@ -838,52 +844,56 @@
     }
 
     // ================= ЗАГРУЗКА ДАННЫХ =================
-async function loadTeamData() {
-    if (!currentState.team) return;
-    
-    try {
-        console.log('Загрузка данных команды...');
+    async function loadTeamData() {
+        if (!currentState.team) return;
         
-        // Загружаем рейтинг
-        const ratingResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getRating`);
-        if (!ratingResponse.ok) throw new Error('Ошибка загрузки рейтинга');
-        
-        const ratingResult = await ratingResponse.json();
-        console.log('Рейтинг:', ratingResult);
-        
-        if (ratingResult.success) {
-            currentState.rating = ratingResult.data.rating || [];
+        try {
+            console.log('Загрузка данных команды...');
             
-            // НАХОДИМ АКТУАЛЬНЫЕ ДАННЫЕ КОМАНДЫ В РЕЙТИНГЕ
-            const updatedTeamData = currentState.rating.find(team => team.id == currentState.team.id);
-            if (updatedTeamData) {
-                // ОБНОВЛЯЕМ ДАННЫЕ ТЕКУЩЕЙ КОМАНДЫ
-                currentState.team.score = updatedTeamData.score;
-                currentState.team.name = updatedTeamData.name;
-                // Сохраняем обновленные данные в localStorage
-                localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
+            // Загружаем рейтинг
+            const ratingResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getRating`);
+            if (!ratingResponse.ok) throw new Error('Ошибка загрузки рейтинга');
+            
+            const ratingResult = await ratingResponse.json();
+            console.log('Рейтинг:', ratingResult);
+            
+            if (ratingResult.success) {
+                currentState.rating = ratingResult.data.rating || [];
+                
+                // НАХОДИМ АКТУАЛЬНЫЕ ДАННЫЕ КОМАНДЫ В РЕЙТИНГЕ
+                const updatedTeamData = currentState.rating.find(team => team.id == currentState.team.id);
+                if (updatedTeamData) {
+                    // ОБНОВЛЯЕМ ДАННЫЕ ТЕКУЩЕЙ КОМАНДЫ
+                    currentState.team.score = updatedTeamData.score || 0;
+                    currentState.team.name = updatedTeamData.name || currentState.team.name;
+                    // Сохраняем обновленные данные в localStorage
+                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
+                    
+                    // СРАЗУ ОБНОВЛЯЕМ ИНТЕРФЕЙС
+                    updateTeamDashboard();
+                } else {
+                    // Если команда не найдена в рейтинге, всё равно обновляем интерфейс
+                    updateTeamDashboard();
+                }
             }
             
-            updateTeamDashboard();
+            // Загружаем историю
+            const historyResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`);
+            if (!historyResponse.ok) throw new Error('Ошибка загрузки истории');
+            
+            const historyResult = await historyResponse.json();
+            console.log('История:', historyResult);
+            
+            if (historyResult.success) {
+                currentState.transactions = historyResult.data.transactions || [];
+                updateHistoryTable();
+            }
+            
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+            showNotification('Ошибка загрузки данных', 'error');
         }
-        
-        // Загружаем историю
-        const historyResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`);
-        if (!historyResponse.ok) throw new Error('Ошибка загрузки истории');
-        
-        const historyResult = await historyResponse.json();
-        console.log('История:', historyResult);
-        
-        if (historyResult.success) {
-            currentState.transactions = historyResult.data.transactions || [];
-            updateHistoryTable();
-        }
-        
-    } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
-        showNotification('Ошибка загрузки данных', 'error');
     }
-}
 
     async function loadAdminData() {
         try {
@@ -918,28 +928,28 @@ async function loadTeamData() {
 
     // ================= ОБНОВЛЕНИЕ ИНТЕРФЕЙСА =================
     function updateTeamDashboard() {
-    if (!currentState.team) return;
-    
-    // Обновляем заголовок
-    document.getElementById('teamNameDisplay').textContent = currentState.team.name;
-    document.getElementById('teamScoreDisplay').textContent = `${currentState.team.score || 0} баллов`;
-    
-    // Обновляем статистику
-    document.getElementById('myScore').textContent = currentState.team.score || 0;
-    
-    // Находим позицию в рейтинге
-    let position = 0;
-    if (currentState.rating && currentState.rating.length > 0) {
-        position = currentState.rating.findIndex(team => team.id == currentState.team.id) + 1;
-        if (position === 0) position = currentState.rating.length + 1;
+        if (!currentState.team) return;
+        
+        // Обновляем заголовок
+        document.getElementById('teamNameDisplay').textContent = currentState.team.name || 'Моя команда';
+        document.getElementById('teamScoreDisplay').textContent = `${currentState.team.score || 0} баллов`;
+        
+        // Обновляем статистику
+        document.getElementById('myScore').textContent = currentState.team.score || 0;
+        
+        // Находим позицию в рейтинге
+        let position = 0;
+        if (currentState.rating && currentState.rating.length > 0) {
+            position = currentState.rating.findIndex(team => team.id == currentState.team.id) + 1;
+            if (position === 0) position = currentState.rating.length + 1;
+        }
+        
+        document.getElementById('myPosition').textContent = position > 0 ? position : '-';
+        document.getElementById('totalTeams').textContent = currentState.rating ? currentState.rating.length : 0;
+        
+        // Обновляем таблицу рейтинга
+        updateRatingTable();
     }
-    
-    document.getElementById('myPosition').textContent = position > 0 ? position : '-';
-    document.getElementById('totalTeams').textContent = currentState.rating ? currentState.rating.length : 0;
-    
-    // Обновляем таблицу рейтинга
-    updateRatingTable();
-}
 
     function updateHistoryTable() {
         const container = document.getElementById('historyTable');
@@ -1154,6 +1164,15 @@ async function loadTeamData() {
                 document.getElementById('pointsInput').value = '';
                 document.getElementById('reasonInput').value = '';
                 
+                // Если администратор начислил баллы своей команде, обновляем данные
+                if (currentState.team && currentState.team.id == teamId) {
+                    // Обновляем баллы команды сразу
+                    currentState.team.score = (currentState.team.score || 0) + points;
+                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
+                    updateTeamDashboard();
+                }
+                
+                // Обновляем данные админки
                 loadAdminData();
             } else {
                 showNotification(result.data?.error || 'Ошибка при начислении баллов', 'error');
@@ -1282,6 +1301,14 @@ async function loadTeamData() {
                 showNotification('Команда успешно обновлена', 'success');
                 closeModal('editTeamModal');
                 
+                // Если редактируем свою команду, обновляем данные
+                if (currentState.team && currentState.team.id == teamId) {
+                    currentState.team.name = name;
+                    currentState.team.code = code;
+                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
+                    updateTeamDashboard();
+                }
+                
                 loadAdminData();
             } else {
                 showNotification(result.data?.error || 'Ошибка обновления команды', 'error');
@@ -1397,6 +1424,25 @@ async function loadTeamData() {
         }
     }
 
+    // ================= АВТООБНОВЛЕНИЕ =================
+    function startAutoRefresh() {
+        stopAutoRefresh();
+        console.log('Автообновление запущено с интервалом:', CONFIG.REFRESH_INTERVAL, 'мс');
+        
+        window.refreshInterval = setInterval(() => {
+            console.log('Автоматическое обновление данных...');
+            refreshData();
+        }, CONFIG.REFRESH_INTERVAL);
+    }
+
+    function stopAutoRefresh() {
+        if (window.refreshInterval) {
+            clearInterval(window.refreshInterval);
+            window.refreshInterval = null;
+            console.log('Автообновление остановлено');
+        }
+    }
+
     function showAddTeamModal() {
         document.getElementById('addTeamModal').classList.add('active');
     }
@@ -1422,5 +1468,3 @@ async function loadTeamData() {
     </script>
 </body>
 </html>
-
-
