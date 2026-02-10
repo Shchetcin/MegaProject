@@ -640,19 +640,20 @@
     <script>
     // ================= КОНФИГУРАЦИЯ =================
     const CONFIG = {
-        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzPl7EMIVcnfvZ18NnJYq9XJUSNPh58j0R3Af1koH4mkn8_AXbugekjfoRCKMdIiFBK_g/exec',
-        REFRESH_INTERVAL: 2000, // Уменьшили до 2 секунд для быстрого обновления
+        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzdRxo0uM-BmfhTb-hUvUfzlIgK6gAkqXhjgQgcgwFKxWW2_e8ic6x8SPLc8evp4WBL9Q/exec',
+        REFRESH_INTERVAL: 3000,
         VERSION: '2.0'
     };
 
-    // ================= СОСТОЯНИЕ ПРИЛОЖЕНИЯ =================
+    // ================= ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =================
     let currentState = {
         team: null,
         isAdmin: false,
         allTeams: [],
         rating: [],
         transactions: [],
-        currentUser: null
+        currentUser: null,
+        adminPassword: '' // Сохраняем пароль организатора
     };
 
     // ================= ИНИЦИАЛИЗАЦИЯ =================
@@ -663,6 +664,7 @@
         const savedTeam = localStorage.getItem('currentTeam');
         const savedAdmin = localStorage.getItem('isAdmin');
         const savedUser = localStorage.getItem('currentUser');
+        const savedPassword = localStorage.getItem('adminPassword');
         
         if (savedTeam) {
             currentState.team = JSON.parse(savedTeam);
@@ -672,6 +674,7 @@
         } else if (savedAdmin === 'true' && savedUser) {
             currentState.isAdmin = true;
             currentState.currentUser = JSON.parse(savedUser);
+            currentState.adminPassword = savedPassword || '';
             showScreen('adminScreen');
             loadAdminData();
             startAutoRefresh();
@@ -690,7 +693,6 @@
         showLoading(true);
         
         try {
-            console.log('Поиск команды с кодом:', code);
             const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamByCode&code=${encodeURIComponent(code)}`);
             
             if (!response.ok) {
@@ -698,7 +700,6 @@
             }
             
             const result = await response.json();
-            console.log('Ответ сервера:', result);
             
             if (result.success && result.data.team) {
                 currentState.team = result.data.team;
@@ -729,9 +730,7 @@
         showLoading(true);
         
         try {
-            console.log('Проверка пароля администратора...');
-            
-            // Создаем FormData для отправки
+            // Проверяем пароль
             const formData = new FormData();
             formData.append('action', 'checkPassword');
             formData.append('password', password);
@@ -746,7 +745,6 @@
             }
             
             const result = await response.json();
-            console.log('Ответ проверки пароля:', result);
             
             if (result.success && result.data.valid) {
                 currentState.isAdmin = true;
@@ -755,16 +753,17 @@
                     role: 'admin',
                     timestamp: new Date().toISOString()
                 };
+                currentState.adminPassword = password; // Сохраняем пароль
                 
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('currentUser', JSON.stringify(currentState.currentUser));
+                localStorage.setItem('adminPassword', password);
                 
                 showScreen('adminScreen');
                 loadAdminData();
                 startAutoRefresh();
                 
                 showNotification('Панель организатора активна', 'success');
-                
                 document.getElementById('adminPassword').value = '';
                 
             } else {
@@ -782,10 +781,12 @@
         currentState.team = null;
         currentState.isAdmin = false;
         currentState.currentUser = null;
+        currentState.adminPassword = '';
         
         localStorage.removeItem('currentTeam');
         localStorage.removeItem('isAdmin');
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('adminPassword');
         
         stopAutoRefresh();
         showScreen('loginScreen');
@@ -796,6 +797,261 @@
         showNotification('Выход выполнен', 'info');
     }
 
+    // ================= ОПЕРАЦИИ ОРГАНИЗАТОРА =================
+    function quickAddPoints(points, reason) {
+        const teamId = document.getElementById('quickTeamSelect').value;
+        
+        if (!teamId) {
+            showNotification('Сначала выберите команду', 'warning');
+            return;
+        }
+        
+        document.getElementById('manualTeamSelect').value = teamId;
+        document.getElementById('pointsInput').value = points;
+        document.getElementById('reasonInput').value = reason;
+        document.getElementById('moderatorInput').value = 'Организатор';
+        
+        manualAddPoints();
+    }
+
+    async function manualAddPoints() {
+        const teamId = document.getElementById('manualTeamSelect').value;
+        const points = parseInt(document.getElementById('pointsInput').value);
+        const reason = document.getElementById('reasonInput').value.trim();
+        const moderator = document.getElementById('moderatorInput').value.trim() || 'Организатор';
+        
+        if (!teamId || isNaN(points) || !reason) {
+            showNotification('Заполните все обязательные поля', 'error');
+            return;
+        }
+        
+        if (!currentState.adminPassword) {
+            showNotification('Требуется пароль организатора. Войдите заново.', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'addPoints');
+            formData.append('teamId', teamId);
+            formData.append('points', points);
+            formData.append('reason', reason);
+            formData.append('moderator', moderator);
+            formData.append('password', currentState.adminPassword); // Используем сохраненный пароль
+            
+            const response = await fetch(CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(result.data?.message || 'Баллы начислены успешно', 'success');
+                
+                // Сбрасываем поля
+                document.getElementById('pointsInput').value = '';
+                document.getElementById('reasonInput').value = '';
+                
+                // Обновляем данные у всех
+                loadAdminData();
+                
+                // Если участник смотрит свои данные, обновляем и их
+                if (currentState.team && currentState.team.id == teamId) {
+                    loadTeamData();
+                }
+                
+            } else {
+                showNotification(result.data?.error || 'Ошибка при начислении баллов', 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка сети: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // ================= УПРАВЛЕНИЕ КОМАНДАМИ =================
+    function showAddTeamModal() {
+        document.getElementById('newTeamName').value = '';
+        document.getElementById('newTeamCode').value = '';
+        document.getElementById('newTeamContact').value = '';
+        
+        // Меняем текст кнопки на "Добавить команду"
+        const modalBtn = document.querySelector('#addTeamModal button');
+        modalBtn.innerHTML = '<i class="fas fa-plus"></i> Добавить команду';
+        modalBtn.onclick = function() { addNewTeam(); };
+        
+        document.getElementById('addTeamModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    async function addNewTeam() {
+        const name = document.getElementById('newTeamName').value.trim();
+        const code = document.getElementById('newTeamCode').value.trim().toUpperCase();
+        const contact = document.getElementById('newTeamContact').value.trim();
+        
+        if (!name || !code) {
+            showNotification('Заполните название и код команды', 'error');
+            return;
+        }
+        
+        if (code.length < 3) {
+            showNotification('Код должен содержать минимум 3 символа', 'error');
+            return;
+        }
+        
+        if (!currentState.adminPassword) {
+            showNotification('Требуется пароль организатора. Войдите заново.', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'addTeam');
+            formData.append('name', name);
+            formData.append('code', code);
+            formData.append('contact', contact);
+            formData.append('password', currentState.adminPassword);
+            
+            const response = await fetch(CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(result.data?.message || `Команда "${name}" добавлена`, 'success');
+                
+                document.getElementById('newTeamName').value = '';
+                document.getElementById('newTeamCode').value = '';
+                document.getElementById('newTeamContact').value = '';
+                
+                closeModal('addTeamModal');
+                loadAdminData(); // Перезагружаем список команд
+                
+            } else {
+                showNotification(result.data?.error || 'Ошибка при добавлении команды', 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка сети: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function editTeam(teamId) {
+        const team = currentState.allTeams.find(t => t.id == teamId);
+        if (team) {
+            document.getElementById('newTeamName').value = team.name || '';
+            document.getElementById('newTeamCode').value = team.code || '';
+            document.getElementById('newTeamContact').value = team.contact || '';
+            
+            // Меняем текст кнопки на "Сохранить изменения"
+            const modalBtn = document.querySelector('#addTeamModal button');
+            modalBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить изменения';
+            modalBtn.onclick = function() { updateTeam(teamId); };
+            
+            document.getElementById('addTeamModal').classList.add('active');
+        }
+    }
+
+    async function updateTeam(teamId) {
+        const name = document.getElementById('newTeamName').value.trim();
+        const code = document.getElementById('newTeamCode').value.trim().toUpperCase();
+        const contact = document.getElementById('newTeamContact').value.trim();
+        
+        if (!name || !code) {
+            showNotification('Заполните название и код команды', 'error');
+            return;
+        }
+        
+        if (code.length < 3) {
+            showNotification('Код должен содержать минимум 3 символа', 'error');
+            return;
+        }
+        
+        if (!currentState.adminPassword) {
+            showNotification('Требуется пароль организатора. Войдите заново.', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'updateTeam');
+            formData.append('teamId', teamId);
+            formData.append('name', name);
+            formData.append('code', code);
+            formData.append('contact', contact);
+            formData.append('password', currentState.adminPassword);
+            
+            const response = await fetch(CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(result.data?.message || `Команда "${name}" обновлена`, 'success');
+                
+                document.getElementById('newTeamName').value = '';
+                document.getElementById('newTeamCode').value = '';
+                document.getElementById('newTeamContact').value = '';
+                
+                closeModal('addTeamModal');
+                loadAdminData(); // Перезагружаем список команд
+                
+                // Если участник смотрит свои данные и обновил свою команду
+                if (currentState.team && currentState.team.id == teamId) {
+                    currentState.team.name = name;
+                    currentState.team.code = code;
+                    currentState.team.contact = contact;
+                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
+                    updateTeamDashboard();
+                }
+                
+            } else {
+                showNotification(result.data?.error || 'Ошибка при обновлении команды', 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка сети: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function addPointsToTeam(teamId) {
+        const select = document.getElementById('quickTeamSelect');
+        const option = Array.from(select.options).find(opt => opt.value == teamId);
+        
+        if (option) {
+            select.value = teamId;
+            showNotification(`Выбрана команда: ${option.text}`, 'info');
+        } else {
+            showNotification('Команда не найдена в списке', 'error');
+        }
+    }
+
     // ================= ЗАГРУЗКА ДАННЫХ =================
     async function loadTeamData() {
         if (!currentState.team) return;
@@ -803,8 +1059,6 @@
         showLoading(true);
         
         try {
-            console.log('Загрузка данных команды...');
-            
             // Загружаем рейтинг
             const ratingResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getRating`);
             if (!ratingResponse.ok) throw new Error('Ошибка загрузки рейтинга');
@@ -839,8 +1093,6 @@
         showLoading(true);
         
         try {
-            console.log('Загрузка данных администратора...');
-            
             // Загружаем все команды
             const teamsResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeams`);
             if (!teamsResponse.ok) throw new Error('Ошибка загрузки команд');
@@ -874,14 +1126,11 @@
     function updateTeamDashboard() {
         if (!currentState.team) return;
         
-        // Обновляем заголовок
         document.getElementById('teamNameDisplay').textContent = currentState.team.name;
         document.getElementById('teamScoreDisplay').textContent = `${currentState.team.score || 0} баллов`;
         
-        // Обновляем статистику
         document.getElementById('myScore').textContent = currentState.team.score || 0;
         
-        // Находим позицию в рейтинге
         let position = 0;
         if (currentState.rating && currentState.rating.length > 0) {
             position = currentState.rating.findIndex(team => team.id === currentState.team.id) + 1;
@@ -891,7 +1140,6 @@
         document.getElementById('myPosition').textContent = position > 0 ? position : '-';
         document.getElementById('totalTeams').textContent = currentState.rating ? currentState.rating.length : 0;
         
-        // Обновляем таблицу рейтинга
         updateRatingTable();
     }
 
@@ -1045,269 +1293,8 @@
         tbody.innerHTML = html;
     }
 
-    // ================= ОПЕРАЦИИ ОРГАНИЗАТОРА =================
-    function quickAddPoints(points, reason) {
-        const teamId = document.getElementById('quickTeamSelect').value;
-        
-        if (!teamId) {
-            showNotification('Сначала выберите команду', 'warning');
-            return;
-        }
-        
-        document.getElementById('manualTeamSelect').value = teamId;
-        document.getElementById('pointsInput').value = points;
-        document.getElementById('reasonInput').value = reason;
-        
-        manualAddPoints();
-    }
-
-    async function manualAddPoints() {
-        const teamId = document.getElementById('manualTeamSelect').value;
-        const points = parseInt(document.getElementById('pointsInput').value);
-        const reason = document.getElementById('reasonInput').value.trim();
-        const moderator = document.getElementById('moderatorInput').value.trim() || 'Администратор';
-        const password = document.getElementById('adminPassword').value;
-        
-        if (!teamId || isNaN(points) || !reason) {
-            showNotification('Заполните все обязательные поля', 'error');
-            return;
-        }
-        
-        if (!password) {
-            showNotification('Требуется пароль организатора', 'error');
-            return;
-        }
-        
-        showLoading(true);
-        
-        try {
-            console.log('Начисление баллов команде:', teamId, 'баллы:', points);
-            
-            const formData = new FormData();
-            formData.append('action', 'addPoints');
-            formData.append('teamId', teamId);
-            formData.append('points', points);
-            formData.append('reason', reason);
-            formData.append('moderator', moderator);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат начисления:', result);
-            
-            if (result.success) {
-                showNotification(result.data?.message || 'Баллы начислены успешно', 'success');
-                
-                // Сбрасываем поля
-                document.getElementById('pointsInput').value = '';
-                document.getElementById('reasonInput').value = '';
-                
-                // Обновляем данные у всех
-                loadAdminData();
-                
-                // Если участник смотрит свои данные, обновляем и их
-                if (currentState.team && currentState.team.id == teamId) {
-                    loadTeamData();
-                }
-                
-            } else {
-                showNotification(result.data?.error || 'Ошибка при начислении баллов', 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    // ================= УПРАВЛЕНИЕ КОМАНДАМИ =================
-    function showAddTeamModal() {
-        document.getElementById('newTeamName').value = '';
-        document.getElementById('newTeamCode').value = '';
-        document.getElementById('newTeamContact').value = '';
-        document.getElementById('addTeamModal').classList.add('active');
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
-    }
-
-    async function addNewTeam() {
-        const name = document.getElementById('newTeamName').value.trim();
-        const code = document.getElementById('newTeamCode').value.trim().toUpperCase();
-        const contact = document.getElementById('newTeamContact').value.trim();
-        const password = document.getElementById('adminPassword').value;
-        
-        if (!name || !code) {
-            showNotification('Заполните название и код команды', 'error');
-            return;
-        }
-        
-        if (code.length !== 6) {
-            showNotification('Код должен содержать 6 символов', 'error');
-            return;
-        }
-        
-        if (!password) {
-            showNotification('Требуется пароль организатора', 'error');
-            return;
-        }
-        
-        showLoading(true);
-        
-        try {
-            console.log('Добавление новой команды:', name, 'код:', code);
-            
-            const formData = new FormData();
-            formData.append('action', 'addTeam');
-            formData.append('name', name);
-            formData.append('code', code);
-            formData.append('contact', contact);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат добавления:', result);
-            
-            if (result.success) {
-                showNotification(`Команда "${name}" добавлена с кодом ${code}`, 'success');
-                
-                document.getElementById('newTeamName').value = '';
-                document.getElementById('newTeamCode').value = '';
-                document.getElementById('newTeamContact').value = '';
-                
-                closeModal('addTeamModal');
-                loadAdminData(); // Перезагружаем список команд
-                
-            } else {
-                showNotification(result.data?.error || 'Ошибка при добавлении команды', 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    function editTeam(teamId) {
-        const team = currentState.allTeams.find(t => t.id == teamId);
-        if (team) {
-            document.getElementById('newTeamName').value = team.name || '';
-            document.getElementById('newTeamCode').value = team.code || '';
-            document.getElementById('newTeamContact').value = team.contact || '';
-            document.getElementById('addTeamModal').classList.add('active');
-            
-            // Меняем текст кнопки на "Сохранить изменения"
-            const modalBtn = document.querySelector('#addTeamModal button');
-            modalBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить изменения';
-            modalBtn.onclick = function() { updateTeam(teamId); };
-        }
-    }
-
-    async function updateTeam(teamId) {
-        const name = document.getElementById('newTeamName').value.trim();
-        const code = document.getElementById('newTeamCode').value.trim().toUpperCase();
-        const contact = document.getElementById('newTeamContact').value.trim();
-        const password = document.getElementById('adminPassword').value;
-        
-        if (!name || !code) {
-            showNotification('Заполните название и код команды', 'error');
-            return;
-        }
-        
-        if (code.length !== 6) {
-            showNotification('Код должен содержать 6 символов', 'error');
-            return;
-        }
-        
-        if (!password) {
-            showNotification('Требуется пароль организатора', 'error');
-            return;
-        }
-        
-        showLoading(true);
-        
-        try {
-            console.log('Обновление команды ID:', teamId, 'новое название:', name);
-            
-            const formData = new FormData();
-            formData.append('action', 'updateTeam');
-            formData.append('teamId', teamId);
-            formData.append('name', name);
-            formData.append('code', code);
-            formData.append('contact', contact);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат обновления:', result);
-            
-            if (result.success) {
-                showNotification(`Команда "${name}" обновлена`, 'success');
-                
-                document.getElementById('newTeamName').value = '';
-                document.getElementById('newTeamCode').value = '';
-                document.getElementById('newTeamContact').value = '';
-                
-                closeModal('addTeamModal');
-                loadAdminData(); // Перезагружаем список команд
-                
-                // Если участник смотрит свои данные и обновил свою команду
-                if (currentState.team && currentState.team.id == teamId) {
-                    currentState.team.name = name;
-                    currentState.team.code = code;
-                    currentState.team.contact = contact;
-                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
-                    updateTeamDashboard();
-                }
-                
-            } else {
-                showNotification(result.data?.error || 'Ошибка при обновлении команды', 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    function addPointsToTeam(teamId) {
-        const select = document.getElementById('quickTeamSelect');
-        const option = Array.from(select.options).find(opt => opt.value == teamId);
-        
-        if (option) {
-            select.value = teamId;
-            showNotification(`Выбрана команда: ${option.text}`, 'info');
-        } else {
-            showNotification('Команда не найдена в списке', 'error');
-        }
-    }
-
     // ================= УТИЛИТЫ =================
     function showScreen(screenId) {
-        console.log('Переход на экран:', screenId);
-        
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
@@ -1315,19 +1302,12 @@
         const targetScreen = document.getElementById(screenId);
         if (targetScreen) {
             targetScreen.classList.add('active');
-        } else {
-            console.error('Экран не найден:', screenId);
         }
     }
 
     function showNotification(message, type = 'info') {
-        console.log('Уведомление:', type, message);
-        
         const notification = document.getElementById('notification');
-        if (!notification) {
-            console.error('Элемент уведомления не найден');
-            return;
-        }
+        if (!notification) return;
         
         notification.textContent = message;
         notification.className = `notification ${type}`;
@@ -1341,7 +1321,6 @@
     function showLoading(show) {
         if (show) {
             document.body.style.cursor = 'wait';
-            // Добавляем индикатор загрузки
             if (!document.getElementById('loadingOverlay')) {
                 const overlay = document.createElement('div');
                 overlay.id = 'loadingOverlay';
@@ -1358,66 +1337,49 @@
                     align-items: center;
                 `;
                 overlay.innerHTML = `
-                    <div class="loader" style="border: 8px solid #f3f3f3; border-top: 8px solid #4361ee; border-radius: 50%; width: 60px; height: 60px; animation: spin 2s linear infinite;"></div>
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.3);">
+                        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #4361ee; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
+                        <p style="margin-top: 10px; color: #4361ee;">Загрузка...</p>
+                    </div>
                 `;
                 document.body.appendChild(overlay);
-                
-                // Добавляем CSS анимацию
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `;
-                document.head.appendChild(style);
             }
         } else {
             document.body.style.cursor = 'default';
             const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.remove();
-            }
+            if (overlay) overlay.remove();
         }
     }
 
     function refreshData() {
-        console.log('Обновление данных...');
-        
         if (currentState.team) {
             loadTeamData();
-            showNotification('Данные команды обновлены', 'success');
         } else if (currentState.isAdmin) {
             loadAdminData();
-            showNotification('Данные организатора обновлены', 'success');
         }
     }
 
     function startAutoRefresh() {
         stopAutoRefresh();
-        console.log('Автообновление запущено с интервалом:', CONFIG.REFRESH_INTERVAL);
-        
-        window.refreshInterval = setInterval(() => {
-            refreshData();
-        }, CONFIG.REFRESH_INTERVAL);
+        window.refreshInterval = setInterval(refreshData, CONFIG.REFRESH_INTERVAL);
     }
 
     function stopAutoRefresh() {
         if (window.refreshInterval) {
             clearInterval(window.refreshInterval);
             window.refreshInterval = null;
-            console.log('Автообновление остановлено');
         }
     }
 
-    // ================= PWA ФУНКЦИИ =================
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(error => {
-                console.log('Service Worker не зарегистрирован:', error);
-            });
-        });
-    }
+    // Добавляем CSS анимацию
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
 
     // Делаем функции глобальными
     window.loginAsTeam = loginAsTeam;
@@ -1433,5 +1395,4 @@
     window.updateTeam = updateTeam;
     window.addPointsToTeam = addPointsToTeam;
 </script>
-
 
