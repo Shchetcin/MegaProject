@@ -3,1468 +3,1385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Квест 2026 - Очный этап</title>
+    <title>Квест 2026 – Галактический магазин</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
         }
 
         :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --warning: #f8961e;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --gray: #6c757d;
+            --space-dark: #0b0d1e;
+            --space-purple: #1a1a3a;
+            --neon-blue: #4e54f5;
+            --neon-cyan: #3dc2ec;
+            --neon-pink: #f72585;
+            --neon-green: #06d6a0;
+            --star-color: rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(20, 25, 45, 0.9);
+            --text-light: #f0f0f0;
+            --text-dim: #aaa;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(ellipse at top, #1a1a3a, #0a0a1a);
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Звёздный фон */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent;
+            background-image: 
+                radial-gradient(2px 2px at 10px 20px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 30px 70px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 80px 40px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 150px 180px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 250px 300px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 350px 150px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 450px 500px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 550px 700px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 650px 400px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 750px 900px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 850px 200px, var(--star-color), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 950px 600px, var(--star-color), rgba(0,0,0,0));
+            background-repeat: repeat;
+            pointer-events: none;
+            z-index: -1;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .app {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: rgba(10, 15, 30, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             overflow: hidden;
             min-height: 90vh;
+            color: var(--text-light);
         }
 
+        /* Экраны */
         .screen {
             display: none;
-            padding: 20px;
         }
-
         .screen.active {
             display: block;
-            animation: fadeIn 0.5s;
+            animation: fadeIn 0.5s ease;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Шапка */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
+            padding: 20px 30px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
         }
 
-        .logo i {
-            font-size: 32px;
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, var(--neon-blue), var(--neon-cyan));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 0 20px var(--neon-blue);
         }
 
-        .logo h1 {
-            font-size: 24px;
+        .logo-text h1 {
+            font-size: 26px;
             font-weight: 600;
+            background: linear-gradient(135deg, #fff, #b0b0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo-text p {
+            font-size: 14px;
+            color: var(--text-dim);
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 20px;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
+        .impulse-badge {
+            background: linear-gradient(145deg, var(--neon-green), #0a9);
+            color: #000;
+            font-weight: bold;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        /* Кнопки */
         .btn {
-            padding: 12px 24px;
+            padding: 12px 28px;
             border: none;
-            border-radius: 10px;
+            border-radius: 40px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
         }
-
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-color: var(--neon-cyan);
+        }
         .btn-primary {
-            background: var(--primary);
-            color: white;
+            background: linear-gradient(145deg, var(--neon-blue), #3a3fd4);
+            border: none;
         }
-
-        .btn-primary:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
         .btn-success {
-            background: var(--success);
-            color: white;
+            background: linear-gradient(145deg, var(--neon-green), #059669);
+            border: none;
         }
-
         .btn-danger {
-            background: var(--danger);
-            color: white;
+            background: linear-gradient(145deg, var(--neon-pink), #c41e6b);
+            border: none;
         }
-
         .btn-outline {
             background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
         }
 
-        .login-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            padding: 40px;
-        }
-
-        .login-card {
-            background: var(--light);
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            border: 3px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .login-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-        }
-
-        .login-card i {
-            font-size: 64px;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-
-        .login-card h2 {
-            margin-bottom: 20px;
-            color: var(--dark);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .dashboard {
-            padding: 20px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+        /* Табы */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 50px;
             margin-bottom: 30px;
         }
+        .tab-btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 16px;
+        }
+        .tab-btn.active {
+            background: var(--neon-blue);
+            color: white;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
 
+        /* Контент */
+        .dashboard {
+            padding: 30px;
+        }
+
+        /* Карточки статистики */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
         .stat-card {
-            background: var(--light);
-            border-radius: 15px;
+            background: var(--card-bg);
+            border-radius: 30px;
             padding: 25px;
-            text-align: center;
-            border-left: 5px solid var(--primary);
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: rgba(78, 84, 245, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--neon-cyan);
+        }
         .stat-value {
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 700;
-            color: var(--primary);
-            margin: 10px 0;
+            line-height: 1;
+            background: linear-gradient(135deg, #fff, #b0b0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-
         .stat-label {
             font-size: 14px;
-            color: var(--gray);
+            color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
+        /* Сетка магазина */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(5px);
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+        }
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 15px 35px rgba(0,255,255,0.2);
+        }
+        .product-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(78, 84, 245, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .product-card:hover .product-icon {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 30px var(--neon-cyan);
+        }
+        .product-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .product-description {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+        .product-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--neon-green);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-buy {
+            width: 100%;
+            padding: 14px;
+            border-radius: 40px;
+            background: linear-gradient(145deg, var(--neon-blue), #3a3fd4);
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-buy:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+        .btn-buy:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Таблицы */
         .table-container {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
             margin-bottom: 30px;
             overflow-x: auto;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
-
         th {
-            background: var(--light);
-            padding: 15px;
             text-align: left;
+            padding: 16px;
+            background: rgba(0,0,0,0.3);
+            color: var(--neon-cyan);
             font-weight: 600;
-            color: var(--dark);
-            border-bottom: 2px solid #ddd;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-
         td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
         tr:hover {
-            background: #f8f9ff;
+            background: rgba(255,255,255,0.03);
         }
 
-        .badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
+        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
             align-items: center;
             justify-content: center;
+            z-index: 1000;
         }
-
         .modal.active {
             display: flex;
         }
-
         .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 40px;
+            padding: 40px;
             max-width: 500px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
-
+        .modal-header h2 {
+            color: white;
+        }
         .modal-close {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 30px;
+            color: var(--text-dim);
             cursor: pointer;
-            color: var(--gray);
+        }
+        .modal-close:hover { color: white; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 40px;
+            border: none;
+            background: rgba(0,0,0,0.4);
+            color: white;
+            font-size: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
         }
 
+        /* Уведомления */
         .notification {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
+            bottom: 30px;
+            right: 30px;
+            padding: 18px 30px;
+            border-radius: 60px;
+            background: var(--card-bg);
+            border-left: 6px solid var(--neon-green);
             color: white;
             font-weight: 600;
-            z-index: 1001;
+            z-index: 2000;
             display: none;
             animation: slideIn 0.3s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px black;
         }
-
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        .notification.success { border-left-color: var(--neon-green); }
+        .notification.error { border-left-color: var(--neon-pink); }
+        .notification.warning { border-left-color: #f8961e; }
 
-        .notification.success {
-            background: var(--success);
-        }
-
-        .notification.error {
-            background: var(--danger);
-        }
-
-        .notification.warning {
-            background: var(--warning);
-        }
-
+        /* Адаптивность */
         @media (max-width: 768px) {
-            .login-options {
-                grid-template-columns: 1fr;
-                padding: 20px;
-            }
-            
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .table-container {
-                padding: 10px;
-            }
-            
-            th, td {
-                padding: 10px;
-                font-size: 14px;
-            }
-        }
-
-        .loader {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--gray);
-        }
-
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .action-btn-edit {
-            background: var(--primary);
-            color: white;
-        }
-
-        .action-btn-delete {
-            background: var(--danger);
-            color: white;
-        }
-
-        .action-btn-points {
-            background: var(--success);
-            color: white;
+            .header { flex-direction: column; text-align: center; }
+            .tabs { flex-wrap: wrap; justify-content: center; }
+            .tab-btn { flex: 1 1 auto; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .shop-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="app">
-            <!-- Экран входа -->
+            <!-- ЭКРАН ВХОДА -->
             <div id="loginScreen" class="screen active">
                 <div class="header">
                     <div class="logo">
-                        <i class="fas fa-trophy"></i>
-                        <h1>Квест 2026 - Очный этап</h1>
+                        <div class="logo-icon"><i class="fas fa-rocket"></i></div>
+                        <div class="logo-text">
+                            <h1>Квест 2026</h1>
+                            <p>Галактический сектор</p>
+                        </div>
                     </div>
-                    <div class="version">v2.0</div>
+                    <div class="version" style="color: var(--text-dim);">v3.0</div>
                 </div>
-                
-                <div class="login-options">
-                    <div class="login-card">
-                        <i class="fas fa-users"></i>
-                        <h2>Участник</h2>
-                        <p>Войдите, чтобы увидеть свои баллы и рейтинг</p>
-                        <div class="form-group">
-                            <input type="text" id="teamCode" class="form-control" placeholder="Введите код команды" maxlength="6">
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 30px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; width: 100%;">
+                        <!-- Карточка входа команды -->
+                        <div class="stat-card" style="text-align: center;">
+                            <div class="stat-icon" style="margin: 0 auto 20px;"><i class="fas fa-users"></i></div>
+                            <h2 style="margin-bottom: 20px;">Участник</h2>
+                            <p style="margin-bottom: 30px; color: var(--text-dim);">Войдите по коду команды</p>
+                            <div class="form-group">
+                                <input type="text" id="teamCodeInput" class="form-control" placeholder="Код команды (6 символов)" maxlength="6">
+                            </div>
+                            <button onclick="loginAsTeam()" class="btn btn-primary" style="width: 100%;">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </button>
                         </div>
-                        <button onclick="loginAsTeam()" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Войти как участник
-                        </button>
-                    </div>
-                    
-                    <div class="login-card">
-                        <i class="fas fa-user-shield"></i>
-                        <h2>Организатор</h2>
-                        <p>Войдите для управления баллами команд</p>
-                        <div class="form-group">
-                            <input type="password" id="adminPassword" class="form-control" placeholder="Введите пароль">
+                        <!-- Карточка входа организатора -->
+                        <div class="stat-card" style="text-align: center;">
+                            <div class="stat-icon" style="margin: 0 auto 20px;"><i class="fas fa-crown"></i></div>
+                            <h2 style="margin-bottom: 20px;">Организатор</h2>
+                            <p style="margin-bottom: 30px; color: var(--text-dim);">Доступ к управлению</p>
+                            <div class="form-group">
+                                <input type="password" id="adminPasswordInput" class="form-control" placeholder="Пароль">
+                            </div>
+                            <button onclick="loginAsAdmin()" class="btn btn-success" style="width: 100%;">
+                                <i class="fas fa-lock"></i> Войти
+                            </button>
                         </div>
-                        <button onclick="loginAsAdmin()" class="btn btn-success">
-                            <i class="fas fa-lock"></i> Войти как организатор
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Экран участника -->
+            <!-- ЭКРАН УЧАСТНИКА (КОМАНДЫ) -->
             <div id="teamScreen" class="screen">
                 <div class="header">
                     <div class="logo">
-                        <button onclick="logout()" class="btn btn-outline">
-                            <i class="fas fa-arrow-left"></i> Назад
-                        </button>
-                        <h1 id="teamNameDisplay">Моя команда</h1>
+                        <button onclick="logout()" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Выход</button>
+                        <div class="logo-icon"><i class="fas fa-galaxy"></i></div>
+                        <div class="logo-text">
+                            <h1 id="teamNameHeader">Звёздная команда</h1>
+                            <p>Импульсы: <span id="teamScoreHeader">0</span></p>
+                        </div>
                     </div>
                     <div class="user-info">
-                        <span id="teamScoreDisplay">0 баллов</span>
-                        <button onclick="refreshData()" class="btn btn-primary">
-                            <i class="fas fa-sync-alt"></i> Обновить
-                        </button>
+                        <span class="impulse-badge"><i class="fas fa-bolt"></i> <span id="teamScoreBadge">0</span></span>
+                        <button onclick="refreshTeamData()" class="btn"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
-                
+
+                <!-- Табы -->
                 <div class="dashboard">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Ваши баллы</div>
-                            <div class="stat-value" id="myScore">0</div>
-                            <div class="stat-label">Текущий счет</div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Ваше место</div>
-                            <div class="stat-value" id="myPosition">-</div>
-                            <div class="stat-label">В общем рейтинге</div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-label">Всего команд</div>
-                            <div class="stat-value" id="totalTeams">0</div>
-                            <div class="stat-label">Участвуют</div>
-                        </div>
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTeamTab('dashboard')">📊 Дашборд</button>
+                        <button class="tab-btn" onclick="switchTeamTab('shop')">🛒 Галактический магазин</button>
+                        <button class="tab-btn" onclick="switchTeamTab('inventory')">📦 Мой инвентарь</button>
                     </div>
-                    
-                    <div class="table-container">
-                        <h3><i class="fas fa-history"></i> История начислений</h3>
-                        <div id="historyTable">
-                            <div class="empty-state">
-                                <i class="fas fa-history"></i>
-                                <p>История начислений пока пуста</p>
+
+                    <!-- Вкладка Дашборд -->
+                    <div id="teamDashboardTab" style="display: block;">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                                    <div class="stat-label">Мои импульсы</div>
+                                </div>
+                                <div class="stat-value" id="myScore">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+                                    <div class="stat-label">Место в рейтинге</div>
+                                </div>
+                                <div class="stat-value" id="myPosition">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                                    <div class="stat-label">Всего команд</div>
+                                </div>
+                                <div class="stat-value" id="totalTeamsCount">0</div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="table-container">
-                        <h3><i class="fas fa-trophy"></i> Общий рейтинг</h3>
-                        <div id="ratingTable">
-                            <div class="empty-state">
-                                <i class="fas fa-trophy"></i>
-                                <p>Загрузка рейтинга...</p>
-                            </div>
+
+                        <div class="table-container">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-history"></i> История начислений</h3>
+                            <div id="historyTable">Загрузка...</div>
                         </div>
+
+                        <div class="table-container">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-chart-line"></i> Рейтинг команд</h3>
+                            <div id="ratingTable">Загрузка...</div>
+                        </div>
+                    </div>
+
+                    <!-- Вкладка Магазин -->
+                    <div id="teamShopTab" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2><i class="fas fa-store"></i> Космические здания Юпитера</h2>
+                            <span class="impulse-badge">Ваши импульсы: <span id="shopImpulseBalance">0</span></span>
+                        </div>
+                        <div id="shopItemsGrid" class="shop-grid">Загрузка товаров...</div>
+                    </div>
+
+                    <!-- Вкладка Инвентарь -->
+                    <div id="teamInventoryTab" style="display: none;">
+                        <h2 style="margin-bottom: 20px;"><i class="fas fa-box"></i> Мои приобретения</h2>
+                        <div id="inventoryGrid" class="shop-grid">Загрузка инвентаря...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Экран организатора -->
+            <!-- ЭКРАН ОРГАНИЗАТОРА -->
             <div id="adminScreen" class="screen">
                 <div class="header">
                     <div class="logo">
-                        <button onclick="logout()" class="btn btn-outline">
-                            <i class="fas fa-arrow-left"></i> Назад
-                        </button>
-                        <h1>Панель организатора</h1>
+                        <button onclick="logout()" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Выход</button>
+                        <div class="logo-icon"><i class="fas fa-crown"></i></div>
+                        <div class="logo-text">
+                            <h1>Организатор</h1>
+                            <p>Управление галактикой</p>
+                        </div>
                     </div>
                     <div class="user-info">
-                        <span>Режим: <strong>Организатор</strong></span>
-                        <button onclick="refreshData()" class="btn btn-primary">
-                            <i class="fas fa-sync-alt"></i> Обновить
-                        </button>
+                        <span class="impulse-badge"><i class="fas fa-star"></i> Полный доступ</span>
+                        <button onclick="refreshAdminData()" class="btn"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
-                
+
                 <div class="dashboard">
-                    <div class="table-container">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3><i class="fas fa-users"></i> Все команды</h3>
-                            <button onclick="showAddTeamModal()" class="btn btn-success">
-                                <i class="fas fa-plus"></i> Добавить команду
-                            </button>
-                        </div>
-                        
-                        <table id="allTeamsTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Баллы</th>
-                                    <th>Код доступа</th>
-                                    <th>Контакт</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="teamsTableBody">
-                                <!-- Данные загружаются динамически -->
-                            </tbody>
-                        </table>
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchAdminTab('teams')">👥 Команды</button>
+                        <button class="tab-btn" onclick="switchAdminTab('shop')">🛒 Управление магазином</button>
+                        <button class="tab-btn" onclick="switchAdminTab('stats')">📊 Статистика</button>
                     </div>
-                    
-                    <div class="stats-grid">
+
+                    <!-- Вкладка Команды (управление командами и начисление импульсов) -->
+                    <div id="adminTeamsTab" style="display: block;">
                         <div class="table-container">
-                            <h3><i class="fas fa-plus-circle"></i> Быстрое начисление</h3>
-                            <div style="margin-bottom: 20px;">
-                                <select id="quickTeamSelect" class="form-control" style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3><i class="fas fa-users"></i> Все команды</h3>
+                                <button onclick="showAddTeamModal()" class="btn btn-success"><i class="fas fa-plus"></i> Добавить</button>
+                            </div>
+                            <table id="allTeamsTable">
+                                <thead><tr><th>ID</th><th>Название</th><th>Импульсы</th><th>Код</th><th>Контакт</th><th>Действия</th></tr></thead>
+                                <tbody id="teamsTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="table-container">
+                                <h3><i class="fas fa-plus-circle"></i> Быстрое начисление</h3>
+                                <select id="quickTeamSelect" class="form-control" style="margin-bottom: 15px;">
                                     <option value="">Выберите команду</option>
                                 </select>
+                                <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;">
+                                    <button onclick="quickAddImpulses(10, 'Активность')" class="btn btn-success">+10</button>
+                                    <button onclick="quickAddImpulses(20, 'Победа')" class="btn btn-success">+20</button>
+                                    <button onclick="quickAddImpulses(50, 'Особое достижение')" class="btn btn-success">+50</button>
+                                    <button onclick="quickAddImpulses(-5, 'Замечание')" class="btn btn-danger">-5</button>
+                                </div>
                             </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;">
-                                <button onclick="quickAddPoints(10, 'Активность')" class="btn btn-success">+10 Активность</button>
-                                <button onclick="quickAddPoints(20, 'Победа в игре')" class="btn btn-success">+20 Победа</button>
-                                <button onclick="quickAddPoints(30, 'Творческий подход')" class="btn btn-success">+30 Творчество</button>
-                                <button onclick="quickAddPoints(50, 'Особое достижение')" class="btn btn-success">+50 Особое</button>
-                            </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                                <button onclick="quickAddPoints(-5, 'Нарушение правил')" class="btn btn-danger">-5 Нарушение</button>
-                                <button onclick="quickAddPoints(-10, 'Опоздание')" class="btn btn-danger">-10 Опоздание</button>
-                                <button onclick="quickAddPoints(-20, 'Дисциплина')" class="btn btn-danger">-20 Дисциплина</button>
-                            </div>
-                        </div>
-                        
-                        <div class="table-container">
-                            <h3><i class="fas fa-edit"></i> Ручное начисление</h3>
-                            <div class="form-group">
-                                <select id="manualTeamSelect" class="form-control">
+                            <div class="table-container">
+                                <h3><i class="fas fa-edit"></i> Ручное начисление</h3>
+                                <select id="manualTeamSelect" class="form-control" style="margin-bottom: 15px;">
                                     <option value="">Выберите команду</option>
                                 </select>
+                                <input type="number" id="pointsInput" class="form-control" placeholder="Импульсы" style="margin-bottom: 15px;">
+                                <input type="text" id="reasonInput" class="form-control" placeholder="Причина" style="margin-bottom: 15px;">
+                                <button onclick="manualAddPoints()" class="btn btn-primary" style="width: 100%;">Начислить</button>
                             </div>
-                            <div class="form-group">
-                                <input type="number" id="pointsInput" class="form-control" placeholder="Количество баллов">
-                            </div>
-                            <div class="form-group">
-                                <input type="text" id="reasonInput" class="form-control" placeholder="Причина начисления">
-                            </div>
-                            <div class="form-group">
-                                <input type="text" id="moderatorInput" class="form-control" placeholder="Ваше имя" value="Организатор">
-                            </div>
-                            <button onclick="manualAddPoints()" class="btn btn-primary">
-                                <i class="fas fa-check"></i> Начислить баллы
-                            </button>
                         </div>
                     </div>
-                    
-                    <div class="table-container">
-                        <h3><i class="fas fa-chart-line"></i> Последние операции</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Время</th>
-                                    <th>Команда</th>
-                                    <th>Баллы</th>
-                                    <th>Причина</th>
-                                    <th>Кто</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentTransactions">
-                                <!-- Данные загружаются динамически -->
-                            </tbody>
-                        </table>
+
+                    <!-- Вкладка Управление магазином (CRUD товаров) -->
+                    <div id="adminShopTab" style="display: none;">
+                        <div class="table-container">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3><i class="fas fa-boxes"></i> Товары магазина</h3>
+                                <button onclick="showAddItemModal()" class="btn btn-success"><i class="fas fa-plus"></i> Добавить товар</button>
+                            </div>
+                            <table id="itemsTable">
+                                <thead><tr><th>ID</th><th>Иконка</th><th>Название</th><th>Описание</th><th>Цена</th><th>Действия</th></tr></thead>
+                                <tbody id="itemsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Вкладка Статистика -->
+                    <div id="adminStatsTab" style="display: none;">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+                                <div class="stat-value" id="totalTeamsStat">0</div>
+                                <div class="stat-label">Всего команд</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
+                                <div class="stat-value" id="totalImpulsesStat">0</div>
+                                <div class="stat-label">Всего импульсов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-shopping-cart"></i></div></div>
+                                <div class="stat-value" id="totalPurchasesStat">0</div>
+                                <div class="stat-label">Покупок</div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h3>Последние операции</h3>
+                            <div id="recentTransactionsAdmin">Загрузка...</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно добавления команды -->
+    <!-- МОДАЛЬНЫЕ ОКНА -->
+    <!-- Добавление команды -->
     <div id="addTeamModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Добавить новую команду</h2>
-                <button onclick="closeModal('addTeamModal')" class="modal-close">&times;</button>
+                <h2>Новая команда</h2>
+                <button class="modal-close" onclick="closeModal('addTeamModal')">&times;</button>
             </div>
-            <div class="form-group">
-                <label>Название команды *</label>
-                <input type="text" id="newTeamName" class="form-control" placeholder="Введите название команды">
-            </div>
-            <div class="form-group">
-                <label>Код доступа (6 символов) *</label>
-                <input type="text" id="newTeamCode" class="form-control" placeholder="ABC123" maxlength="6">
-            </div>
-            <div class="form-group">
-                <label>Контактное лицо (необязательно)</label>
-                <input type="text" id="newTeamContact" class="form-control" placeholder="Имя руководителя">
-            </div>
-            <button onclick="addNewTeam()" class="btn btn-success">
-                <i class="fas fa-plus"></i> Добавить команду
-            </button>
+            <div class="form-group"><label>Название</label><input type="text" id="newTeamName" class="form-control"></div>
+            <div class="form-group"><label>Код (6 символов)</label><input type="text" id="newTeamCode" class="form-control" maxlength="6"></div>
+            <div class="form-group"><label>Контакт</label><input type="text" id="newTeamContact" class="form-control"></div>
+            <button onclick="addTeam()" class="btn btn-success" style="width:100%;">Создать</button>
         </div>
     </div>
-
-    <!-- Модальное окно редактирования команды -->
+    <!-- Редактирование команды -->
     <div id="editTeamModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Редактировать команду</h2>
-                <button onclick="closeModal('editTeamModal')" class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('editTeamModal')">&times;</button>
             </div>
             <input type="hidden" id="editTeamId">
-            <div class="form-group">
-                <label>Название команды *</label>
-                <input type="text" id="editTeamName" class="form-control" placeholder="Введите название команды">
+            <div class="form-group"><label>Название</label><input type="text" id="editTeamName" class="form-control"></div>
+            <div class="form-group"><label>Код</label><input type="text" id="editTeamCode" class="form-control" maxlength="6"></div>
+            <div class="form-group"><label>Контакт</label><input type="text" id="editTeamContact" class="form-control"></div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="updateTeam()" class="btn btn-primary" style="flex:1;">Сохранить</button>
+                <button onclick="deleteTeam()" class="btn btn-danger">Удалить</button>
             </div>
-            <div class="form-group">
-                <label>Код доступа (6 символов) *</label>
-                <input type="text" id="editTeamCode" class="form-control" placeholder="ABC123" maxlength="6">
+        </div>
+    </div>
+    <!-- Добавление товара -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Новый товар</h2>
+                <button class="modal-close" onclick="closeModal('addItemModal')">&times;</button>
             </div>
-            <div class="form-group">
-                <label>Контактное лицо (необязательно)</label>
-                <input type="text" id="editTeamContact" class="form-control" placeholder="Имя руководителя">
+            <div class="form-group"><label>Название</label><input type="text" id="newItemName" class="form-control"></div>
+            <div class="form-group"><label>Описание</label><input type="text" id="newItemDesc" class="form-control"></div>
+            <div class="form-group"><label>Цена (импульсы)</label><input type="number" id="newItemPrice" class="form-control"></div>
+            <div class="form-group"><label>Иконка (класс FontAwesome, например "fa-solid fa-meteor")</label><input type="text" id="newItemIcon" class="form-control" value="fa-solid fa-question"></div>
+            <button onclick="addItem()" class="btn btn-success" style="width:100%;">Добавить</button>
+        </div>
+    </div>
+    <!-- Редактирование товара -->
+    <div id="editItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Редактировать товар</h2>
+                <button class="modal-close" onclick="closeModal('editItemModal')">&times;</button>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="updateTeam()" class="btn btn-primary" style="flex: 1;">
-                    <i class="fas fa-save"></i> Сохранить изменения
-                </button>
-                <button onclick="deleteTeam()" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Удалить
-                </button>
+            <input type="hidden" id="editItemId">
+            <div class="form-group"><label>Название</label><input type="text" id="editItemName" class="form-control"></div>
+            <div class="form-group"><label>Описание</label><input type="text" id="editItemDesc" class="form-control"></div>
+            <div class="form-group"><label>Цена</label><input type="number" id="editItemPrice" class="form-control"></div>
+            <div class="form-group"><label>Иконка</label><input type="text" id="editItemIcon" class="form-control"></div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="updateItem()" class="btn btn-primary" style="flex:1;">Сохранить</button>
+                <button onclick="deleteItem()" class="btn btn-danger">Удалить</button>
             </div>
         </div>
     </div>
 
-    <!-- Уведомления -->
+    <!-- Уведомление -->
     <div id="notification" class="notification"></div>
 
     <script>
-    // ================= КОНФИГУРАЦИЯ =================
-    const CONFIG = {
-        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx546l7ZQshJfCwWSKBh-dK-wi1a8ZOS4cWFYV3_fEvvdZD--F5679Ijb0t5jU60BdPQg/exec',
-        REFRESH_INTERVAL: 30000, // 30 секунд для автообновления
-        VERSION: '2.0'
-    };
+        // ================= КОНФИГУРАЦИЯ =================
+        const CONFIG = {
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzdoA9M9lA9S0_Dm5lXidJd3bHhSq8F7iDgjmr9pA6idHOZmsegw-NO0iySMmghFDYKAQ/exec', // ЗАМЕНИТЕ НА СВОЙ URL
+            ADMIN_PASSWORD: 'org2026',
+            REFRESH_INTERVAL: 30000
+        };
 
-    // ================= СОСТОЯНИЕ ПРИЛОЖЕНИЯ =================
-    let currentState = {
-        team: null,
-        isAdmin: false,
-        allTeams: [],
-        rating: [],
-        transactions: [],
-        adminPassword: ''
-    };
+        // ================= СОСТОЯНИЕ =================
+        let currentState = {
+            team: null,               // текущая команда
+            isAdmin: false,
+            adminPassword: '',
+            allTeams: [],
+            allItems: [],
+            purchases: [],
+            transactions: [],
+            rating: []
+        };
 
-    // ================= ИНИЦИАЛИЗАЦИЯ =================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Приложение загружается...');
-        
-        const savedTeam = localStorage.getItem('currentTeam');
-        const savedAdmin = localStorage.getItem('isAdmin');
-        const savedPassword = localStorage.getItem('adminPassword');
-        
-        if (savedTeam) {
-            currentState.team = JSON.parse(savedTeam);
-            showScreen('teamScreen');
-            loadTeamData();
-            startAutoRefresh();
-        } else if (savedAdmin === 'true' && savedPassword) {
-            currentState.isAdmin = true;
-            currentState.adminPassword = savedPassword;
-            showScreen('adminScreen');
-            loadAdminData();
-            startAutoRefresh();
+        // ================= ОБЩИЕ ФУНКЦИИ =================
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.className = `notification ${type}`;
+            notif.style.display = 'block';
+            setTimeout(() => { notif.style.display = 'none'; }, 3000);
         }
-    });
 
-    // ================= АВТОРИЗАЦИЯ =================
-    async function loginAsTeam() {
-        const code = document.getElementById('teamCode').value.trim().toUpperCase();
-        
-        if (!code) {
-            showNotification('Введите код команды', 'error');
-            return;
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
         }
-        
-        try {
-            console.log('Поиск команды с кодом:', code);
-            const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeamByCode&code=${encodeURIComponent(code)}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.log('Ответ сервера:', result);
-            
-            if (result.success && result.data.team) {
-                currentState.team = result.data.team;
-                localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // ================= АВТОРИЗАЦИЯ =================
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTeam = localStorage.getItem('team');
+            const savedAdmin = localStorage.getItem('admin') === 'true';
+            const savedPwd = localStorage.getItem('adminPwd');
+            if (savedTeam) {
+                currentState.team = JSON.parse(savedTeam);
                 showScreen('teamScreen');
                 loadTeamData();
                 startAutoRefresh();
-                showNotification(`Добро пожаловать, ${currentState.team.name}!`, 'success');
-            } else {
-                showNotification(result.data?.error || 'Команда не найдена', 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка подключения:', error);
-            showNotification('Ошибка подключения к серверу', 'error');
-        }
-    }
-
-    async function loginAsAdmin() {
-        const password = document.getElementById('adminPassword').value;
-        
-        if (!password) {
-            showNotification('Введите пароль', 'error');
-            return;
-        }
-        
-        try {
-            console.log('Проверка пароля администратора...');
-            
-            const formData = new FormData();
-            formData.append('action', 'checkPassword');
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.log('Ответ проверки пароля:', result);
-            
-            if (result.success && result.data.valid) {
+            } else if (savedAdmin && savedPwd) {
                 currentState.isAdmin = true;
-                currentState.adminPassword = password;
-                localStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('adminPassword', password);
-                
+                currentState.adminPassword = savedPwd;
                 showScreen('adminScreen');
                 loadAdminData();
                 startAutoRefresh();
-                
-                showNotification('Панель организатора активна', 'success');
-                document.getElementById('adminPassword').value = '';
-                
-            } else {
-                showNotification(result.data?.error || 'Неверный пароль', 'error');
             }
-        } catch (error) {
-            console.error('Ошибка подключения:', error);
-            showNotification('Ошибка подключения: ' + error.message, 'error');
+        });
+
+        function loginAsTeam() {
+            const code = document.getElementById('teamCodeInput').value.trim().toUpperCase();
+            if (!code) return showNotification('Введите код', 'error');
+            fetch(`${CONFIG.SCRIPT_URL}?action=getTeamByCode&code=${encodeURIComponent(code)}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && res.data.team) {
+                        currentState.team = res.data.team;
+                        localStorage.setItem('team', JSON.stringify(currentState.team));
+                        showScreen('teamScreen');
+                        loadTeamData();
+                        startAutoRefresh();
+                        showNotification(`Добро пожаловать, ${currentState.team.name}!`, 'success');
+                    } else {
+                        showNotification('Команда не найдена', 'error');
+                    }
+                })
+                .catch(() => showNotification('Ошибка соединения', 'error'));
         }
-    }
 
-    function logout() {
-        currentState.team = null;
-        currentState.isAdmin = false;
-        currentState.adminPassword = '';
-        
-        localStorage.removeItem('currentTeam');
-        localStorage.removeItem('isAdmin');
-        localStorage.removeItem('adminPassword');
-        
-        stopAutoRefresh();
-        showScreen('loginScreen');
-        document.getElementById('teamCode').value = '';
-        document.getElementById('adminPassword').value = '';
-        
-        showNotification('Выход выполнен', 'info');
-    }
-
-    // ================= ЗАГРУЗКА ДАННЫХ =================
-    async function loadTeamData() {
-        if (!currentState.team) return;
-        
-        try {
-            console.log('Загрузка данных команды...');
-            
-            // Загружаем рейтинг
-            const ratingResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getRating`);
-            if (!ratingResponse.ok) throw new Error('Ошибка загрузки рейтинга');
-            
-            const ratingResult = await ratingResponse.json();
-            console.log('Рейтинг:', ratingResult);
-            
-            if (ratingResult.success) {
-                currentState.rating = ratingResult.data.rating || [];
-                
-                // НАХОДИМ АКТУАЛЬНЫЕ ДАННЫЕ КОМАНДЫ В РЕЙТИНГЕ
-                const updatedTeamData = currentState.rating.find(team => team.id == currentState.team.id);
-                if (updatedTeamData) {
-                    // ОБНОВЛЯЕМ ДАННЫЕ ТЕКУЩЕЙ КОМАНДЫ
-                    currentState.team.score = updatedTeamData.score || 0;
-                    currentState.team.name = updatedTeamData.name || currentState.team.name;
-                    // Сохраняем обновленные данные в localStorage
-                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
-                    
-                    // СРАЗУ ОБНОВЛЯЕМ ИНТЕРФЕЙС
-                    updateTeamDashboard();
+        function loginAsAdmin() {
+            const pwd = document.getElementById('adminPasswordInput').value;
+            if (!pwd) return showNotification('Введите пароль', 'error');
+            fetch(CONFIG.SCRIPT_URL, {
+                method: 'POST',
+                body: new URLSearchParams({ action: 'checkPassword', password: pwd })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success && res.data.valid) {
+                    currentState.isAdmin = true;
+                    currentState.adminPassword = pwd;
+                    localStorage.setItem('admin', 'true');
+                    localStorage.setItem('adminPwd', pwd);
+                    showScreen('adminScreen');
+                    loadAdminData();
+                    startAutoRefresh();
+                    showNotification('Доступ организатора', 'success');
                 } else {
-                    // Если команда не найдена в рейтинге, всё равно обновляем интерфейс
-                    updateTeamDashboard();
+                    showNotification('Неверный пароль', 'error');
                 }
+            })
+            .catch(() => showNotification('Ошибка', 'error'));
+        }
+
+        function logout() {
+            currentState.team = null;
+            currentState.isAdmin = false;
+            currentState.adminPassword = '';
+            localStorage.removeItem('team');
+            localStorage.removeItem('admin');
+            localStorage.removeItem('adminPwd');
+            stopAutoRefresh();
+            showScreen('loginScreen');
+        }
+
+        // ================= ЗАГРУЗКА ДАННЫХ КОМАНДЫ =================
+        async function loadTeamData() {
+            if (!currentState.team) return;
+            try {
+                const [ratingRes, historyRes, itemsRes, invRes] = await Promise.all([
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getRating`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getTeamInventory&teamId=${currentState.team.id}`)
+                ]);
+
+                const ratingData = await ratingRes.json();
+                const historyData = await historyRes.json();
+                const itemsData = await itemsRes.json();
+                const invData = await invRes.json();
+
+                if (ratingData.success) {
+                    currentState.rating = ratingData.data.rating || [];
+                    const updated = currentState.rating.find(t => t.id == currentState.team.id);
+                    if (updated) {
+                        currentState.team.score = updated.score || 0;
+                        currentState.team.name = updated.name;
+                        localStorage.setItem('team', JSON.stringify(currentState.team));
+                    }
+                }
+                if (historyData.success) currentState.transactions = historyData.data.transactions || [];
+                if (itemsData.success) currentState.allItems = itemsData.data.items || [];
+                if (invData.success) currentState.purchases = invData.data.items || [];
+
+                updateTeamUI();
+            } catch (e) {
+                showNotification('Ошибка загрузки', 'error');
             }
-            
-            // Загружаем историю
-            const historyResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`);
-            if (!historyResponse.ok) throw new Error('Ошибка загрузки истории');
-            
-            const historyResult = await historyResponse.json();
-            console.log('История:', historyResult);
-            
-            if (historyResult.success) {
-                currentState.transactions = historyResult.data.transactions || [];
-                updateHistoryTable();
+        }
+
+        function updateTeamUI() {
+            if (!currentState.team) return;
+            // Шапка
+            document.getElementById('teamNameHeader').textContent = currentState.team.name;
+            document.getElementById('teamScoreHeader').textContent = currentState.team.score;
+            document.getElementById('teamScoreBadge').textContent = currentState.team.score;
+            // Дашборд
+            document.getElementById('myScore').textContent = currentState.team.score;
+            const pos = currentState.rating.findIndex(t => t.id == currentState.team.id) + 1;
+            document.getElementById('myPosition').textContent = pos > 0 ? pos : '-';
+            document.getElementById('totalTeamsCount').textContent = currentState.rating.length;
+
+            // История
+            let histHtml = '<table><tr><th>Время</th><th>Импульсы</th><th>Причина</th></tr>';
+            if (currentState.transactions.length) {
+                currentState.transactions.slice(0,10).forEach(t => {
+                    histHtml += `<tr><td>${new Date(t.timestamp).toLocaleString()}</td><td>${t.points>0?'+':''}${t.points}</td><td>${t.reason}</td></tr>`;
+                });
+            } else histHtml += '<tr><td colspan="3">Нет истории</td></tr>';
+            histHtml += '</table>';
+            document.getElementById('historyTable').innerHTML = histHtml;
+
+            // Рейтинг
+            let rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
+            currentState.rating.slice(0,15).forEach((t,i) => {
+                rateHtml += `<tr ${t.id==currentState.team.id?'style="background:rgba(78,84,245,0.3)"':''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
+            });
+            rateHtml += '</table>';
+            document.getElementById('ratingTable').innerHTML = rateHtml;
+
+            // Магазин: баланс и товары
+            document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
+            let shopHtml = '';
+            if (currentState.allItems.length) {
+                currentState.allItems.forEach(item => {
+                    const alreadyOwned = currentState.purchases.some(p => p.id == item.id);
+                    shopHtml += `
+                        <div class="product-card">
+                            <div class="product-icon"><i class="${item.icon}"></i></div>
+                            <div class="product-name">${item.name}</div>
+                            <div class="product-description">${item.description}</div>
+                            <div class="product-price"><i class="fas fa-bolt"></i> ${item.price}</div>
+                            <button class="btn-buy" onclick="buyItem(${item.id})" ${alreadyOwned || currentState.team.score < item.price ? 'disabled' : ''}>
+                                ${alreadyOwned ? 'Уже куплено' : 'Купить'}
+                            </button>
+                        </div>
+                    `;
+                });
+            } else shopHtml = '<p>Товары временно отсутствуют</p>';
+            document.getElementById('shopItemsGrid').innerHTML = shopHtml;
+
+            // Инвентарь
+            let invHtml = '';
+            if (currentState.purchases.length) {
+                currentState.purchases.forEach(item => {
+                    invHtml += `
+                        <div class="product-card">
+                            <div class="product-icon"><i class="${item.icon}"></i></div>
+                            <div class="product-name">${item.name}</div>
+                            <div class="product-description">${item.description}</div>
+                            <div style="color: var(--neon-green);"><i class="fas fa-check-circle"></i> Приобретено</div>
+                        </div>
+                    `;
+                });
+            } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
+            document.getElementById('inventoryGrid').innerHTML = invHtml;
+        }
+
+        // Покупка товара
+        async function buyItem(itemId) {
+            if (!currentState.team) return;
+            const teamId = currentState.team.id;
+            try {
+                const formData = new FormData();
+                formData.append('action', 'buyItem');
+                formData.append('teamId', teamId);
+                formData.append('itemId', itemId);
+                formData.append('password', CONFIG.ADMIN_PASSWORD); // для безопасности можно передавать пароль организатора, но у нас покупка не требует пароля, но в API он нужен? В нашем API buyItem не требует пароля (см. doPost), но для проверки добавим
+
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Покупка совершена!', 'success');
+                    // Обновляем данные
+                    currentState.team.score = result.data.newScore;
+                    localStorage.setItem('team', JSON.stringify(currentState.team));
+                    loadTeamData(); // перезагрузим всё (инвентарь обновится)
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) {
+                showNotification('Ошибка сети', 'error');
             }
-            
-        } catch (error) {
-            console.error('Ошибка загрузки данных:', error);
-            showNotification('Ошибка загрузки данных', 'error');
         }
-    }
 
-    async function loadAdminData() {
-        try {
-            console.log('Загрузка данных администратора...');
-            
-            const teamsResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTeams`);
-            if (!teamsResponse.ok) throw new Error('Ошибка загрузки команд');
-            
-            const teamsResult = await teamsResponse.json();
-            console.log('Команды:', teamsResult);
-            
-            if (teamsResult.success) {
-                currentState.allTeams = teamsResult.data.teams || [];
-                updateAdminTables();
+        // Переключение табов участника
+        window.switchTeamTab = (tab) => {
+            document.querySelectorAll('#teamScreen .tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('teamDashboardTab').style.display = tab === 'dashboard' ? 'block' : 'none';
+            document.getElementById('teamShopTab').style.display = tab === 'shop' ? 'block' : 'none';
+            document.getElementById('teamInventoryTab').style.display = tab === 'inventory' ? 'block' : 'none';
+            if (tab === 'shop' || tab === 'inventory') loadTeamData(); // подгружаем свежие данные
+        };
+
+        // ================= ЗАГРУЗКА ДАННЫХ ОРГАНИЗАТОРА =================
+        async function loadAdminData() {
+            try {
+                const [teamsRes, itemsRes, transRes] = await Promise.all([
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getTeams`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions`)
+                ]);
+                const teamsData = await teamsRes.json();
+                const itemsData = await itemsRes.json();
+                const transData = await transRes.json();
+
+                if (teamsData.success) currentState.allTeams = teamsData.data.teams || [];
+                if (itemsData.success) currentState.allItems = itemsData.data.items || [];
+                if (transData.success) currentState.transactions = transData.data.transactions || [];
+
+                updateAdminUI();
+            } catch (e) {
+                showNotification('Ошибка загрузки данных', 'error');
             }
-            
-            const transResponse = await fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions`);
-            if (!transResponse.ok) throw new Error('Ошибка загрузки транзакций');
-            
-            const transResult = await transResponse.json();
-            console.log('Транзакции:', transResult);
-            
-            if (transResult.success) {
-                updateRecentTransactions(transResult.data.transactions || []);
-            }
-            
-        } catch (error) {
-            console.error('Ошибка загрузки данных админа:', error);
-            showNotification('Ошибка загрузки данных', 'error');
         }
-    }
 
-    // ================= ОБНОВЛЕНИЕ ИНТЕРФЕЙСА =================
-    function updateTeamDashboard() {
-        if (!currentState.team) return;
-        
-        // Обновляем заголовок
-        document.getElementById('teamNameDisplay').textContent = currentState.team.name || 'Моя команда';
-        document.getElementById('teamScoreDisplay').textContent = `${currentState.team.score || 0} баллов`;
-        
-        // Обновляем статистику
-        document.getElementById('myScore').textContent = currentState.team.score || 0;
-        
-        // Находим позицию в рейтинге
-        let position = 0;
-        if (currentState.rating && currentState.rating.length > 0) {
-            position = currentState.rating.findIndex(team => team.id == currentState.team.id) + 1;
-            if (position === 0) position = currentState.rating.length + 1;
-        }
-        
-        document.getElementById('myPosition').textContent = position > 0 ? position : '-';
-        document.getElementById('totalTeams').textContent = currentState.rating ? currentState.rating.length : 0;
-        
-        // Обновляем таблицу рейтинга
-        updateRatingTable();
-    }
+        function updateAdminUI() {
+            // Таблица команд
+            let teamsHtml = '';
+            if (currentState.allTeams.length) {
+                currentState.allTeams.forEach(t => {
+                    teamsHtml += `<tr>
+                        <td>${t.id}</td>
+                        <td>${t.name}</td>
+                        <td>${t.score}</td>
+                        <td>${t.code}</td>
+                        <td>${t.contact || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openEditTeamModal(${t.id})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            } else teamsHtml = '<tr><td colspan="6">Нет команд</td></tr>';
+            document.getElementById('teamsTableBody').innerHTML = teamsHtml;
 
-    function updateHistoryTable() {
-        const container = document.getElementById('historyTable');
-        
-        if (!currentState.transactions || currentState.transactions.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-history"></i>
-                    <p>История начислений пока пуста</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '<table><thead><tr><th>Время</th><th>Баллы</th><th>Причина</th><th>Кто начислил</th></tr></thead><tbody>';
-        
-        currentState.transactions.slice(0, 10).forEach(trans => {
-            const time = trans.timestamp ? 
-                new Date(trans.timestamp).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    day: '2-digit',
-                    month: '2-digit'
-                }) : '--:--';
-            
-            const pointsClass = trans.points > 0 ? 'badge-success' : 'badge-danger';
-            const pointsSign = trans.points > 0 ? '+' : '';
-            
-            html += `
-                <tr>
-                    <td>${time}</td>
-                    <td><span class="badge ${pointsClass}">${pointsSign}${trans.points || 0}</span></td>
-                    <td>${trans.reason || ''}</td>
-                    <td>${trans.moderator || ''}</td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table>';
-        container.innerHTML = html;
-    }
+            // Селекты для начисления
+            let options = '<option value="">Выберите команду</option>';
+            currentState.allTeams.forEach(t => options += `<option value="${t.id}">${t.name} (${t.score})</option>`);
+            document.getElementById('quickTeamSelect').innerHTML = options;
+            document.getElementById('manualTeamSelect').innerHTML = options;
 
-    function updateRatingTable() {
-        const container = document.getElementById('ratingTable');
-        
-        if (!currentState.rating || currentState.rating.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-trophy"></i>
-                    <p>Рейтинг пока пуст</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Баллы</th><th>Отставание</th></tr></thead><tbody>';
-        
-        currentState.rating.forEach((team, index) => {
-            const isCurrent = currentState.team && team.id == currentState.team.id;
-            const rowClass = isCurrent ? 'style="background-color: #e3f2fd;"' : '';
-            const medal = index < 3 ? ['🥇', '🥈', '🥉'][index] : `${index + 1}.`;
-            
-            const leaderScore = currentState.rating[0].score || 0;
-            const gap = leaderScore - (team.score || 0);
-            
-            html += `
-                <tr ${rowClass}>
-                    <td><strong>${medal}</strong></td>
-                    <td>${team.name || 'Без названия'} ${isCurrent ? '<span class="badge badge-warning">Вы</span>' : ''}</td>
-                    <td><strong>${team.score || 0}</strong></td>
-                    <td>${gap > 0 ? `-${gap}` : 'Лидер'}</td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table>';
-        container.innerHTML = html;
-    }
+            // Таблица товаров
+            let itemsHtml = '';
+            if (currentState.allItems.length) {
+                currentState.allItems.forEach(i => {
+                    itemsHtml += `<tr>
+                        <td>${i.id}</td>
+                        <td><i class="${i.icon}"></i></td>
+                        <td>${i.name}</td>
+                        <td>${i.description}</td>
+                        <td>${i.price}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openEditItemModal(${i.id})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            } else itemsHtml = '<tr><td colspan="6">Нет товаров</td></tr>';
+            document.getElementById('itemsTableBody').innerHTML = itemsHtml;
 
-    function updateAdminTables() {
-        const tbody = document.getElementById('teamsTableBody');
-        const quickSelect = document.getElementById('quickTeamSelect');
-        const manualSelect = document.getElementById('manualTeamSelect');
-        
-        tbody.innerHTML = '';
-        quickSelect.innerHTML = '<option value="">Выберите команду</option>';
-        manualSelect.innerHTML = '<option value="">Выберите команду</option>';
-        
-        if (!currentState.allTeams || currentState.allTeams.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Нет команд</td></tr>';
-            return;
-        }
-        
-        currentState.allTeams.forEach(team => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${team.id || ''}</td>
-                <td><strong>${team.name || 'Без названия'}</strong></td>
-                <td><span class="badge ${(team.score || 0) >= 100 ? 'badge-success' : 'badge-warning'}">${team.score || 0}</span></td>
-                <td><code>${team.code || ''}</code></td>
-                <td>${team.contact || ''}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button onclick="openEditTeamModal(${team.id})" class="action-btn action-btn-edit">
-                            <i class="fas fa-edit"></i> Изменить
-                        </button>
-                        <button onclick="selectTeamForPoints(${team.id})" class="action-btn action-btn-points">
-                            <i class="fas fa-plus"></i> Баллы
-                        </button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(row);
-            
-            const option = `<option value="${team.id}">${team.name} (${team.score || 0} баллов)</option>`;
-            quickSelect.innerHTML += option;
-            manualSelect.innerHTML += option;
-        });
-    }
+            // Статистика
+            document.getElementById('totalTeamsStat').textContent = currentState.allTeams.length;
+            const totalImp = currentState.allTeams.reduce((acc, t) => acc + (t.score || 0), 0);
+            document.getElementById('totalImpulsesStat').textContent = totalImp;
+            document.getElementById('totalPurchasesStat').textContent = '?'; // можно добавить подсчёт
 
-    function updateRecentTransactions(transactions) {
-        const tbody = document.getElementById('recentTransactions');
-        
-        if (!transactions || transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Нет операций</td></tr>';
-            return;
+            // Последние операции
+            let transHtml = '<table><tr><th>Время</th><th>Команда</th><th>Импульсы</th><th>Причина</th></tr>';
+            if (currentState.transactions.length) {
+                currentState.transactions.slice(0,10).forEach(t => {
+                    const team = currentState.allTeams.find(tt => tt.id == t.teamId);
+                    transHtml += `<tr><td>${new Date(t.timestamp).toLocaleString()}</td><td>${team ? team.name : t.teamId}</td><td>${t.points}</td><td>${t.reason}</td></tr>`;
+                });
+            } else transHtml += '<tr><td colspan="4">Нет операций</td></tr>';
+            transHtml += '</table>';
+            document.getElementById('recentTransactionsAdmin').innerHTML = transHtml;
         }
-        
-        let html = '';
-        
-        transactions.slice(0, 10).forEach(trans => {
-            const time = trans.timestamp ? 
-                new Date(trans.timestamp).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }) : '--:--';
-            
-            const team = currentState.allTeams.find(t => t.id == trans.teamId);
-            const teamName = team ? team.name : `ID: ${trans.teamId}`;
-            
-            html += `
-                <tr>
-                    <td>${time}</td>
-                    <td>${teamName}</td>
-                    <td><span class="badge ${trans.points > 0 ? 'badge-success' : 'badge-danger'}">${trans.points > 0 ? '+' : ''}${trans.points || 0}</span></td>
-                    <td>${trans.reason || ''}</td>
-                    <td>${trans.moderator || ''}</td>
-                </tr>
-            `;
-        });
-        
-        tbody.innerHTML = html;
-    }
 
-    // ================= ОПЕРАЦИИ ОРГАНИЗАТОРА =================
-    function quickAddPoints(points, reason) {
-        const teamId = document.getElementById('quickTeamSelect').value;
-        
-        if (!teamId) {
-            showNotification('Сначала выберите команду', 'warning');
-            return;
+        // Начисление импульсов (организатор)
+        function quickAddImpulses(points, reason) {
+            const teamId = document.getElementById('quickTeamSelect').value;
+            if (!teamId) return showNotification('Выберите команду', 'warning');
+            document.getElementById('manualTeamSelect').value = teamId;
+            document.getElementById('pointsInput').value = points;
+            document.getElementById('reasonInput').value = reason;
+            manualAddPoints();
         }
-        
-        document.getElementById('manualTeamSelect').value = teamId;
-        document.getElementById('pointsInput').value = points;
-        document.getElementById('reasonInput').value = reason;
-        
-        manualAddPoints();
-    }
 
-    async function manualAddPoints() {
-        const teamId = document.getElementById('manualTeamSelect').value;
-        const points = parseInt(document.getElementById('pointsInput').value);
-        const reason = document.getElementById('reasonInput').value.trim();
-        const moderator = document.getElementById('moderatorInput').value.trim() || 'Организатор';
-        const password = currentState.adminPassword;
-        
-        if (!teamId || isNaN(points) || !reason) {
-            showNotification('Заполните все обязательные поля', 'error');
-            return;
-        }
-        
-        if (!password) {
-            showNotification('Необходимо войти как администратор', 'error');
-            return;
-        }
-        
-        try {
-            console.log('Начисление баллов команде:', teamId, 'баллы:', points);
-            
+        async function manualAddPoints() {
+            const teamId = document.getElementById('manualTeamSelect').value;
+            const points = parseInt(document.getElementById('pointsInput').value);
+            const reason = document.getElementById('reasonInput').value.trim();
+            if (!teamId || isNaN(points) || !reason) return showNotification('Заполните все поля', 'error');
+
             const formData = new FormData();
             formData.append('action', 'addPoints');
             formData.append('teamId', teamId);
             formData.append('points', points);
             formData.append('reason', reason);
-            formData.append('moderator', moderator);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат начисления:', result);
-            
-            if (result.success) {
-                showNotification(result.data?.message || 'Баллы начислены успешно', 'success');
-                
-                document.getElementById('pointsInput').value = '';
-                document.getElementById('reasonInput').value = '';
-                
-                // Если администратор начислил баллы своей команде, обновляем данные
-                if (currentState.team && currentState.team.id == teamId) {
-                    // Обновляем баллы команды сразу
-                    currentState.team.score = (currentState.team.score || 0) + points;
-                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
-                    updateTeamDashboard();
-                }
-                
-                // Обновляем данные админки
-                loadAdminData();
-            } else {
-                showNotification(result.data?.error || 'Ошибка при начислении баллов', 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
-        }
-    }
+            formData.append('moderator', 'Организатор');
+            formData.append('password', currentState.adminPassword);
 
-    async function addNewTeam() {
-        const name = document.getElementById('newTeamName').value.trim();
-        const code = document.getElementById('newTeamCode').value.trim().toUpperCase();
-        const contact = document.getElementById('newTeamContact').value.trim();
-        const password = currentState.adminPassword;
-        
-        if (!name || !code) {
-            showNotification('Заполните название и код команды', 'error');
-            return;
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Начислено успешно', 'success');
+                    document.getElementById('pointsInput').value = '';
+                    document.getElementById('reasonInput').value = '';
+                    loadAdminData();
+                    // Если это начисление для текущей команды (если организатор ещё и под своей командой залогинен), обновим и её
+                    if (currentState.team && currentState.team.id == teamId) {
+                        currentState.team.score += points;
+                        localStorage.setItem('team', JSON.stringify(currentState.team));
+                    }
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
-        
-        if (!password) {
-            showNotification('Необходимо войти как администратор', 'error');
-            return;
-        }
-        
-        if (code.length !== 6) {
-            showNotification('Код должен содержать 6 символов', 'error');
-            return;
-        }
-        
-        try {
-            console.log('Добавление новой команды:', name);
-            
+
+        // CRUD команды
+        function showAddTeamModal() { document.getElementById('addTeamModal').classList.add('active'); }
+        async function addTeam() {
+            const name = document.getElementById('newTeamName').value.trim();
+            const code = document.getElementById('newTeamCode').value.trim().toUpperCase();
+            const contact = document.getElementById('newTeamContact').value.trim();
+            if (!name || !code) return showNotification('Введите название и код', 'error');
+            if (code.length !== 6) return showNotification('Код должен быть 6 символов', 'error');
+
             const formData = new FormData();
             formData.append('action', 'addTeam');
             formData.append('name', name);
             formData.append('code', code);
             formData.append('contact', contact);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат добавления:', result);
-            
-            if (result.success) {
-                showNotification('Команда успешно добавлена', 'success');
-                closeModal('addTeamModal');
-                
-                document.getElementById('newTeamName').value = '';
-                document.getElementById('newTeamCode').value = '';
-                document.getElementById('newTeamContact').value = '';
-                
-                loadAdminData();
-            } else {
-                showNotification(result.data?.error || 'Ошибка добавления команды', 'error');
+            formData.append('password', currentState.adminPassword);
+
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Команда добавлена', 'success');
+                    closeModal('addTeamModal');
+                    document.getElementById('newTeamName').value = '';
+                    document.getElementById('newTeamCode').value = '';
+                    document.getElementById('newTeamContact').value = '';
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка', 'error'); }
+        }
+
+        function openEditTeamModal(id) {
+            const team = currentState.allTeams.find(t => t.id == id);
+            if (team) {
+                document.getElementById('editTeamId').value = team.id;
+                document.getElementById('editTeamName').value = team.name;
+                document.getElementById('editTeamCode').value = team.code;
+                document.getElementById('editTeamContact').value = team.contact || '';
+                document.getElementById('editTeamModal').classList.add('active');
             }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
         }
-    }
-
-    function openEditTeamModal(teamId) {
-        const team = currentState.allTeams.find(t => t.id == teamId);
-        if (team) {
-            document.getElementById('editTeamId').value = team.id;
-            document.getElementById('editTeamName').value = team.name || '';
-            document.getElementById('editTeamCode').value = team.code || '';
-            document.getElementById('editTeamContact').value = team.contact || '';
-            closeModal('addTeamModal');
-            document.getElementById('editTeamModal').classList.add('active');
-        }
-    }
-
-    async function updateTeam() {
-        const teamId = document.getElementById('editTeamId').value;
-        const name = document.getElementById('editTeamName').value.trim();
-        const code = document.getElementById('editTeamCode').value.trim().toUpperCase();
-        const contact = document.getElementById('editTeamContact').value.trim();
-        const password = currentState.adminPassword;
-        
-        if (!teamId || !name || !code) {
-            showNotification('Заполните все обязательные поля', 'error');
-            return;
-        }
-        
-        if (!password) {
-            showNotification('Необходимо войти как администратор', 'error');
-            return;
-        }
-        
-        if (code.length !== 6) {
-            showNotification('Код должен содержать 6 символов', 'error');
-            return;
-        }
-        
-        try {
-            console.log('Обновление команды:', teamId);
-            
+        async function updateTeam() {
+            const id = document.getElementById('editTeamId').value;
+            const name = document.getElementById('editTeamName').value.trim();
+            const code = document.getElementById('editTeamCode').value.trim().toUpperCase();
+            const contact = document.getElementById('editTeamContact').value.trim();
+            if (!name || !code) return showNotification('Заполните поля', 'error');
             const formData = new FormData();
             formData.append('action', 'updateTeam');
-            formData.append('teamId', teamId);
+            formData.append('teamId', id);
             formData.append('name', name);
             formData.append('code', code);
             formData.append('contact', contact);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат обновления:', result);
-            
-            if (result.success) {
-                showNotification('Команда успешно обновлена', 'success');
-                closeModal('editTeamModal');
-                
-                // Если редактируем свою команду, обновляем данные
-                if (currentState.team && currentState.team.id == teamId) {
-                    currentState.team.name = name;
-                    currentState.team.code = code;
-                    localStorage.setItem('currentTeam', JSON.stringify(currentState.team));
-                    updateTeamDashboard();
+            formData.append('password', currentState.adminPassword);
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Обновлено', 'success');
+                    closeModal('editTeamModal');
+                    loadAdminData();
+                    if (currentState.team && currentState.team.id == id) {
+                        currentState.team.name = name;
+                        currentState.team.code = code;
+                        localStorage.setItem('team', JSON.stringify(currentState.team));
+                    }
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
                 }
-                
-                loadAdminData();
-            } else {
-                showNotification(result.data?.error || 'Ошибка обновления команды', 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
+            } catch (e) { showNotification('Ошибка', 'error'); }
         }
-    }
-
-    async function deleteTeam() {
-        const teamId = document.getElementById('editTeamId').value;
-        const password = currentState.adminPassword;
-        
-        if (!teamId) {
-            showNotification('Не выбрана команда для удаления', 'error');
-            return;
-        }
-        
-        if (!password) {
-            showNotification('Необходимо войти как администратор', 'error');
-            return;
-        }
-        
-        if (!confirm(`Вы уверены, что хотите удалить команду? Это действие нельзя будет отменить.`)) {
-            return;
-        }
-        
-        try {
-            console.log('Удаление команды:', teamId);
-            
+        async function deleteTeam() {
+            const id = document.getElementById('editTeamId').value;
+            if (!confirm('Удалить команду? Это удалит все её данные.')) return;
             const formData = new FormData();
             formData.append('action', 'deleteTeam');
-            formData.append('teamId', teamId);
-            formData.append('password', password);
-            
-            const response = await fetch(CONFIG.SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            console.log('Результат удаления:', result);
-            
-            if (result.success) {
-                showNotification('Команда успешно удалена', 'success');
-                closeModal('editTeamModal');
-                
-                loadAdminData();
-            } else {
-                showNotification(result.data?.error || 'Ошибка удаления команды', 'error');
+            formData.append('teamId', id);
+            formData.append('password', currentState.adminPassword);
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Команда удалена', 'success');
+                    closeModal('editTeamModal');
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка', 'error'); }
+        }
+
+        // CRUD товаров
+        function showAddItemModal() { document.getElementById('addItemModal').classList.add('active'); }
+        async function addItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            const desc = document.getElementById('newItemDesc').value.trim();
+            const price = parseInt(document.getElementById('newItemPrice').value);
+            const icon = document.getElementById('newItemIcon').value.trim();
+            if (!name || !price) return showNotification('Введите название и цену', 'error');
+            const formData = new FormData();
+            formData.append('action', 'addItem');
+            formData.append('name', name);
+            formData.append('description', desc);
+            formData.append('price', price);
+            formData.append('icon', icon);
+            formData.append('password', currentState.adminPassword);
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Товар добавлен', 'success');
+                    closeModal('addItemModal');
+                    document.getElementById('newItemName').value = '';
+                    document.getElementById('newItemDesc').value = '';
+                    document.getElementById('newItemPrice').value = '';
+                    document.getElementById('newItemIcon').value = 'fa-solid fa-question';
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка', 'error'); }
+        }
+        function openEditItemModal(id) {
+            const item = currentState.allItems.find(i => i.id == id);
+            if (item) {
+                document.getElementById('editItemId').value = item.id;
+                document.getElementById('editItemName').value = item.name;
+                document.getElementById('editItemDesc').value = item.description;
+                document.getElementById('editItemPrice').value = item.price;
+                document.getElementById('editItemIcon').value = item.icon;
+                document.getElementById('editItemModal').classList.add('active');
             }
-        } catch (error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка сети: ' + error.message, 'error');
         }
-    }
-
-    function selectTeamForPoints(teamId) {
-        const select = document.getElementById('quickTeamSelect');
-        const option = Array.from(select.options).find(opt => opt.value == teamId);
-        
-        if (option) {
-            select.value = teamId;
-            showNotification(`Выбрана команда: ${option.text}`, 'info');
-        } else {
-            showNotification('Команда не найдена в списке', 'error');
+        async function updateItem() {
+            const id = document.getElementById('editItemId').value;
+            const name = document.getElementById('editItemName').value.trim();
+            const desc = document.getElementById('editItemDesc').value.trim();
+            const price = parseInt(document.getElementById('editItemPrice').value);
+            const icon = document.getElementById('editItemIcon').value.trim();
+            if (!name || !price) return showNotification('Заполните поля', 'error');
+            const formData = new FormData();
+            formData.append('action', 'updateItem');
+            formData.append('itemId', id);
+            formData.append('name', name);
+            formData.append('description', desc);
+            formData.append('price', price);
+            formData.append('icon', icon);
+            formData.append('password', currentState.adminPassword);
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Обновлено', 'success');
+                    closeModal('editItemModal');
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка', 'error'); }
         }
-    }
-
-    // ================= УТИЛИТЫ =================
-    function showScreen(screenId) {
-        console.log('Переход на экран:', screenId);
-        
-        document.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
-        });
-        
-        const targetScreen = document.getElementById(screenId);
-        if (targetScreen) {
-            targetScreen.classList.add('active');
-        } else {
-            console.error('Экран не найден:', screenId);
+        async function deleteItem() {
+            const id = document.getElementById('editItemId').value;
+            if (!confirm('Удалить товар?')) return;
+            const formData = new FormData();
+            formData.append('action', 'deleteItem');
+            formData.append('itemId', id);
+            formData.append('password', currentState.adminPassword);
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Товар удалён', 'success');
+                    closeModal('editItemModal');
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка', 'error'); }
         }
-    }
 
-    function showNotification(message, type = 'info') {
-        console.log('Уведомление:', type, message);
-        
-        const notification = document.getElementById('notification');
-        if (!notification) return;
-        
-        notification.textContent = message;
-        notification.className = `notification ${type}`;
-        notification.style.display = 'block';
-        
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 3000);
-    }
+        // Переключение табов организатора
+        window.switchAdminTab = (tab) => {
+            document.querySelectorAll('#adminScreen .tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('adminTeamsTab').style.display = tab === 'teams' ? 'block' : 'none';
+            document.getElementById('adminShopTab').style.display = tab === 'shop' ? 'block' : 'none';
+            document.getElementById('adminStatsTab').style.display = tab === 'stats' ? 'block' : 'none';
+            if (tab === 'shop' || tab === 'stats') loadAdminData();
+        };
 
-    function refreshData() {
-        console.log('Обновление данных...');
-        
-        if (currentState.team) {
-            loadTeamData();
-            showNotification('Данные команды обновлены', 'success');
-        } else if (currentState.isAdmin) {
-            loadAdminData();
-            showNotification('Данные организатора обновлены', 'success');
+        // Обновление данных
+        window.refreshTeamData = loadTeamData;
+        window.refreshAdminData = loadAdminData;
+
+        // Автообновление
+        let refreshInterval;
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshInterval = setInterval(() => {
+                if (currentState.team) loadTeamData();
+                else if (currentState.isAdmin) loadAdminData();
+            }, CONFIG.REFRESH_INTERVAL);
         }
-    }
+        function stopAutoRefresh() { if (refreshInterval) clearInterval(refreshInterval); }
 
-    // ================= АВТООБНОВЛЕНИЕ =================
-    function startAutoRefresh() {
-        stopAutoRefresh();
-        console.log('Автообновление запущено с интервалом:', CONFIG.REFRESH_INTERVAL, 'мс');
-        
-        window.refreshInterval = setInterval(() => {
-            console.log('Автоматическое обновление данных...');
-            refreshData();
-        }, CONFIG.REFRESH_INTERVAL);
-    }
-
-    function stopAutoRefresh() {
-        if (window.refreshInterval) {
-            clearInterval(window.refreshInterval);
-            window.refreshInterval = null;
-            console.log('Автообновление остановлено');
-        }
-    }
-
-    function showAddTeamModal() {
-        document.getElementById('addTeamModal').classList.add('active');
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
-    }
-
-    // Делаем функции глобальными для кнопок
-    window.loginAsTeam = loginAsTeam;
-    window.loginAsAdmin = loginAsAdmin;
-    window.logout = logout;
-    window.refreshData = refreshData;
-    window.quickAddPoints = quickAddPoints;
-    window.manualAddPoints = manualAddPoints;
-    window.showAddTeamModal = showAddTeamModal;
-    window.closeModal = closeModal;
-    window.addNewTeam = addNewTeam;
-    window.openEditTeamModal = openEditTeamModal;
-    window.updateTeam = updateTeam;
-    window.deleteTeam = deleteTeam;
-    window.selectTeamForPoints = selectTeamForPoints;
+        // Глобальные функции для onclick
+        window.loginAsTeam = loginAsTeam;
+        window.loginAsAdmin = loginAsAdmin;
+        window.logout = logout;
+        window.buyItem = buyItem;
+        window.quickAddImpulses = quickAddImpulses;
+        window.manualAddPoints = manualAddPoints;
+        window.showAddTeamModal = showAddTeamModal;
+        window.addTeam = addTeam;
+        window.openEditTeamModal = openEditTeamModal;
+        window.updateTeam = updateTeam;
+        window.deleteTeam = deleteTeam;
+        window.showAddItemModal = showAddItemModal;
+        window.addItem = addItem;
+        window.openEditItemModal = openEditItemModal;
+        window.updateItem = updateItem;
+        window.deleteItem = deleteItem;
+        window.closeModal = closeModal;
     </script>
 </body>
 </html>
