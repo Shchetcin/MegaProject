@@ -782,7 +782,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxT6iz19sfaJcGLkt33XPm6dT27d0afZAD45QEKprN6bowCvKo_BUv7AsXsmrVFgDE84w/exec', // ЗАМЕНИТЕ НА СВОЙ URL
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzeWHuSrt7u8TIcTRlQ38KBF_6vrMMLX35qjgYQce2oCVl0oGA2xZGhDxtLY-Y3gK2-5w/exec', // ЗАМЕНИТЕ НА СВОЙ URL
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -1004,7 +1004,7 @@
                 formData.append('action', 'buyItem');
                 formData.append('teamId', teamId);
                 formData.append('itemId', itemId);
-                formData.append('password', CONFIG.ADMIN_PASSWORD); // для безопасности можно передавать пароль организатора, но у нас покупка не требует пароля, но в API он нужен? В нашем API buyItem не требует пароля (см. doPost), но для проверки добавим
+                formData.append('password', CONFIG.ADMIN_PASSWORD); // для безопасности можно передавать пароль организатора, но у нас покупка не требует пароля, но добавим для совместимости
 
                 const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
@@ -1385,5 +1385,3 @@
     </script>
 </body>
 </html>
-
-
